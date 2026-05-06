@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, Heart, Info, Play, Plus, Volume2, VolumeX } from "lucide-react";
-import type { Title } from "@/data/content";
+import { fallbackTitles, type Title } from "@/data/content";
 import { useApp } from "@/contexts/AppContext";
 
 const demoVideos = [
@@ -15,7 +15,8 @@ export function ReelsFeed({ items }: { items: Title[] }) {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
-  const feedItems = items.slice(0, 2).map((item, index) => ({
+  const sourceItems = items.length ? items : fallbackTitles;
+  const feedItems = sourceItems.slice(0, 2).map((item, index) => ({
     ...item,
     videoUrl: demoVideos[index],
   }));
@@ -52,7 +53,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
         video.currentTime = 0;
       }
     });
-  }, [activeIndex, muted]);
+  }, [activeIndex, muted, feedItems.length]);
 
   return (
     <section className="md:hidden h-[100dvh] overflow-y-auto snap-y snap-mandatory overscroll-contain scroll-smooth bg-black scrollbar-hide">
@@ -75,6 +76,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
                 poster={item.backdrop || item.poster}
                 playsInline
                 muted={muted}
+                autoPlay={index === activeIndex}
                 loop
                 preload={index < 2 ? "auto" : "metadata"}
                 className="absolute inset-0 h-full w-full object-cover"
