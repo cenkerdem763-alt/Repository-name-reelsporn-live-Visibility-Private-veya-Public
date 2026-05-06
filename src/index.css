@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 84% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 0 90% 65%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 64%;
+
+    --accent: 0 0% 16%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 16%;
+    --input: 0 0% 14%;
+    --ring: 0 84% 55%;
+
+    --radius: 0.375rem;
+
+    --gradient-hero: linear-gradient(180deg, transparent 0%, hsl(0 0% 4% / 0.4) 50%, hsl(0 0% 4%) 100%);
+    --gradient-hero-side: linear-gradient(90deg, hsl(0 0% 4%) 0%, hsl(0 0% 4% / 0.6) 50%, transparent 100%);
+    --gradient-card: linear-gradient(180deg, transparent 0%, hsl(0 0% 4% / 0.95) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+
+    --shadow-card: 0 10px 40px -10px hsl(0 0% 0% / 0.7);
+    --shadow-glow: 0 0 60px hsl(var(--primary) / 0.4);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--muted)); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--accent)); }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .text-shadow-hero { text-shadow: 0 2px 20px hsl(0 0% 0% / 0.8); }
+  .gradient-hero { background: var(--gradient-hero); }
+  .gradient-hero-side { background: var(--gradient-hero-side); }
+  .gradient-card { background: var(--gradient-card); }
+  .gradient-primary { background: var(--gradient-primary); }
+}
