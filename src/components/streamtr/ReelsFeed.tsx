@@ -1,55 +1,160 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Play, Info } from "lucide-react";
+import { Check, Heart, Info, Play, Plus, Volume2, VolumeX } from "lucide-react";
 import type { Title } from "@/data/content";
+import { useApp } from "@/contexts/AppContext";
 
 export function ReelsFeed({ items }: { items: Title[] }) {
+  const { favorites, toggleFavorite, watchlist, toggleWatchlist } = useApp();
+  const articleRefs = useRef<(HTMLElement | null)[]>([]);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [muted, setMuted] = useState(true);
+  const feedItems = items.slice(0, 12);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (!visible) return;
+        const index = Number((visible.target as HTMLElement).dataset.index);
+        if (!Number.isNaN(index)) setActiveIndex(index);
+      },
+      { threshold: [0.6, 0.85] }
+    );
+
+    articleRefs.current.forEach((article) => {
+      if (article) observer.observe(article);
+    });
+
+    return () => observer.disconnect();
+  }, [feedItems.length]);
+
+  useEffect(() => {
+    videoRefs.current.forEach((video, index) => {
+      if (!video) return;
+      video.muted = muted;
+      if (index === activeIndex) {
+        video.play().catch(() => undefined);
+      } else {
+        video.pause();
+        video.currentTime = 0;
+      }
+    });
+  }, [activeIndex, muted]);
+
   return (
-    <section className="md:hidden h-screen overflow-y-auto snap-y snap-mandatory scroll-smooth">
-      {items.map((item) => (
-        <article key={item.id} className="relative h-screen snap-start w-full">
-          <img
-            src={item.backdrop || item.poster}
-            alt={item.title}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="absolute inset-x-0 bottom-0 p-5 pb-10 bg-gradient-to-t from-black/95 via-black/20 to-transparent">
-            <p className="text-xs uppercase tracking-[0.2em] text-emerald-400 font-semibold mb-2">
-              %{item.match} eşleşme
-            </p>
-            <h2 className="text-4xl font-black tracking-tight sm:text-5xl">{item.title}</h2>
-            <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-white/80 uppercase tracking-[0.2em]">
-              <span>{item.year}</span>
-              <span className="rounded-full border border-white/20 px-2 py-1">{item.duration}</span>
-              <span>{item.rating}</span>
-            </div>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-foreground/90 line-clamp-3">
-              {item.description}
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                to={`/izle/${item.id}`}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black shadow-lg shadow-black/30 transition hover:bg-white/90"
+    <section className="md:hidden h-[100dvh] overflow-y-auto snap-y snap-mandatory overscroll-contain scroll-smooth bg-black scrollbar-hide">
+      {feedItems.map((item, index) => {
+        const videoSrc = item.videoUrl || item.trailerUrl;
+        const inList = watchlist.includes(item.id);
+        const isFavorite = favorites.includes(item.id);
+
+        return (
+          <article
+            key={item.id}
+            ref={(el) => { articleRefs.current[index] = el; }}
+            data-index={index}
+            className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black text-white"
+          >
+            {videoSrc ? (
+              <video
+                ref={(el) => { videoRefs.current[index] = el; }}
+                src={videoSrc}
+                poster={item.backdrop || item.poster}
+                playsInline
+                muted={muted}
+                loop
+                preload={index < 2 ? "auto" : "metadata"}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <img
+                src={item.backdrop || item.poster}
+                alt={item.title}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            )}
+
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/90" />
+            <div className="absolute inset-x-0 top-16 z-10 flex items-center justify-between px-5">
+              <div className="text-xl font-black tracking-tight text-primary">
+                Reels<span className="text-white">Porn</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMuted((value) => !value)}
+                className="grid h-10 w-10 place-items-center rounded-full bg-black/35 text-white backdrop-blur-sm"
+                aria-label={muted ? "Sesi aç" : "Sesi kapat"}
               >
-                <Play className="h-4 w-4" />
-                Oynat
-              </Link>
+                {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+              </button>
+            </div>
+
+            <div className="absolute right-4 bottom-28 z-10 flex flex-col items-center gap-4">
+              <button
+                type="button"
+                onClick={() => toggleFavorite(item.id)}
+                className="grid h-12 w-12 place-items-center rounded-full bg-black/35 text-white backdrop-blur-sm"
+                aria-label="Favorilere ekle"
+              >
+                <Heart className={`h-6 w-6 ${isFavorite ? "fill-primary text-primary" : ""}`} />
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleWatchlist(item.id)}
+                className="grid h-12 w-12 place-items-center rounded-full bg-black/35 text-white backdrop-blur-sm"
+                aria-label={inList ? "Listeden çıkar" : "Listeme ekle"}
+              >
+                {inList ? <Check className="h-6 w-6 text-primary" /> : <Plus className="h-6 w-6" />}
+              </button>
               <Link
                 to={`/icerik/${item.id}`}
-                className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+                className="grid h-12 w-12 place-items-center rounded-full bg-black/35 text-white backdrop-blur-sm"
+                aria-label="Detay"
               >
-                <Info className="h-4 w-4" />
-                Detay
+                <Info className="h-6 w-6" />
+              </Link>
+              <Link
+                to={`/izle/${item.id}`}
+                className="grid h-12 w-12 place-items-center rounded-full bg-white text-black shadow-lg shadow-black/30"
+                aria-label="Oynat"
+              >
+                <Play className="h-6 w-6 fill-current" />
               </Link>
             </div>
-          </div>
-          <div className="pointer-events-none absolute right-4 top-6 flex flex-col gap-3">
-            <span className="rounded-full border border-white/20 bg-black/40 px-3 py-2 text-xs uppercase tracking-[0.15em] text-white/90">
-              {item.type === "film" ? "Film" : "Dizi"}
-            </span>
-          </div>
-        </article>
-      ))}
+
+            <div className="absolute inset-x-0 bottom-0 z-10 p-5 pb-8 pr-20">
+              <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                <span>%{item.match} eşleşme</span>
+                <span className="h-1 w-1 rounded-full bg-white/50" />
+                <span>{item.type === "film" ? "Film" : "Dizi"}</span>
+              </div>
+              <h2 className="text-4xl font-black leading-none tracking-tight">{item.title}</h2>
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-white/80">
+                <span>{item.year}</span>
+                <span className="rounded-full border border-white/25 px-2 py-1">{item.duration}</span>
+                <span>{item.rating}</span>
+              </div>
+              <p className="mt-4 max-w-[18rem] text-sm leading-6 text-white/88 line-clamp-3">
+                {item.description}
+              </p>
+            </div>
+
+            <div className="absolute left-5 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2">
+              {feedItems.map((dot) => (
+                <span
+                  key={dot.id}
+                  className={`h-1.5 w-1.5 rounded-full transition ${dot.id === item.id ? "bg-white" : "bg-white/35"}`}
+                />
+              ))}
+            </div>
+          </article>
+        );
+      })}
     </section>
   );
 }
