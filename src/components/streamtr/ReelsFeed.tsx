@@ -4,13 +4,21 @@ import { Check, Heart, Info, Play, Plus, Volume2, VolumeX } from "lucide-react";
 import type { Title } from "@/data/content";
 import { useApp } from "@/contexts/AppContext";
 
+const demoVideos = [
+  "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+  "https://www.w3schools.com/html/mov_bbb.mp4",
+];
+
 export function ReelsFeed({ items }: { items: Title[] }) {
   const { favorites, toggleFavorite, watchlist, toggleWatchlist } = useApp();
   const articleRefs = useRef<(HTMLElement | null)[]>([]);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
-  const feedItems = items.slice(0, 12);
+  const feedItems = items.slice(0, 2).map((item, index) => ({
+    ...item,
+    videoUrl: demoVideos[index],
+  }));
 
   useEffect(() => {
     const observer = new IntersectionObserver(
