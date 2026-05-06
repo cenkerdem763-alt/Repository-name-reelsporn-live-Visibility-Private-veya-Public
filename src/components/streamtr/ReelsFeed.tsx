@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { Check, Heart, Info, Play, Plus, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { fallbackTitles, type Title } from "@/data/content";
-import { useApp } from "@/contexts/AppContext";
 
 const demoVideos = [
   "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
@@ -10,7 +8,6 @@ const demoVideos = [
 ];
 
 export function ReelsFeed({ items }: { items: Title[] }) {
-  const { favorites, toggleFavorite, watchlist, toggleWatchlist } = useApp();
   const articleRefs = useRef<(HTMLElement | null)[]>([]);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -59,8 +56,6 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     <section className="md:hidden h-[100dvh] overflow-y-auto snap-y snap-mandatory overscroll-contain scroll-smooth bg-black scrollbar-hide">
       {feedItems.map((item, index) => {
         const videoSrc = item.videoUrl || item.trailerUrl;
-        const inList = watchlist.includes(item.id);
-        const isFavorite = favorites.includes(item.id);
 
         return (
           <article
@@ -104,40 +99,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
               </button>
             </div>
 
-            <div className="absolute right-4 bottom-28 z-10 flex flex-col items-center gap-4">
-              <button
-                type="button"
-                onClick={() => toggleFavorite(item.id)}
-                className="grid h-12 w-12 place-items-center rounded-full bg-black/35 text-white backdrop-blur-sm"
-                aria-label="Favorilere ekle"
-              >
-                <Heart className={`h-6 w-6 ${isFavorite ? "fill-primary text-primary" : ""}`} />
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleWatchlist(item.id)}
-                className="grid h-12 w-12 place-items-center rounded-full bg-black/35 text-white backdrop-blur-sm"
-                aria-label={inList ? "Listeden çıkar" : "Listeme ekle"}
-              >
-                {inList ? <Check className="h-6 w-6 text-primary" /> : <Plus className="h-6 w-6" />}
-              </button>
-              <Link
-                to={`/icerik/${item.id}`}
-                className="grid h-12 w-12 place-items-center rounded-full bg-black/35 text-white backdrop-blur-sm"
-                aria-label="Detay"
-              >
-                <Info className="h-6 w-6" />
-              </Link>
-              <Link
-                to={`/izle/${item.id}`}
-                className="grid h-12 w-12 place-items-center rounded-full bg-white text-black shadow-lg shadow-black/30"
-                aria-label="Oynat"
-              >
-                <Play className="h-6 w-6 fill-current" />
-              </Link>
-            </div>
-
-            <div className="absolute inset-x-0 bottom-0 z-10 p-5 pb-8 pr-20">
+            <div className="absolute inset-x-0 bottom-0 z-10 p-5 pb-8">
               <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
                 <span>%{item.match} eşleşme</span>
                 <span className="h-1 w-1 rounded-full bg-white/50" />
