@@ -91,7 +91,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
                   Reels<span className="text-white">Porn</span>
                 </div>
                 <span className="truncate text-xs font-semibold text-white/80">
-                  İlk Reels Porno Sitesi
+                  Türkiye de Tek ve İlk Reels Porno Sitesi
                 </span>
               </div>
               <button
