@@ -270,9 +270,6 @@ export function ReelsFeed({ items }: { items: Title[] }) {
 
                 <div className="absolute inset-x-0 bottom-0 z-10 p-5 pb-8">
                   <h2 className="text-4xl font-black leading-none tracking-tight">{item.title}</h2>
-                  <p className="mt-4 max-w-[18rem] text-sm leading-6 text-white/88 line-clamp-3">
-                    {item.description}
-                  </p>
                 </div>
 
               </article>
