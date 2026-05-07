@@ -31,6 +31,23 @@ function normalizeSource(value: string | undefined) {
   return getEmbedSource(value || "").trim().replace(/\/+$/, "");
 }
 
+type BulkEntry = {
+  raw: string;
+  source: string;
+  title?: string;
+  poster?: string;
+  genres?: string[];
+};
+
+function getHostLabel(value: string) {
+  try {
+    const host = new URL(getEmbedSource(value)).hostname.replace(/^www\./, "");
+    return host.split(".")[0] || "Kaynak";
+  } catch {
+    return "Kaynak";
+  }
+}
+
 function parseBulkLines(value: string) {
   const seen = new Set<string>();
 
@@ -38,8 +55,25 @@ function parseBulkLines(value: string) {
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
-    .filter((line) => {
-      const source = normalizeSource(line);
+    .map((line): BulkEntry => {
+      const parts = line.split("|").map((part) => part.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        return {
+          raw: parts[1],
+          source: normalizeSource(parts[1]),
+          title: parts[0],
+          poster: parts[2],
+          genres: parts[3]?.split(",").map((genre) => genre.trim()).filter(Boolean),
+        };
+      }
+
+      return {
+        raw: line,
+        source: normalizeSource(line),
+      };
+    })
+    .filter((entry) => {
+      const source = entry.source;
       if (!source || seen.has(source)) return false;
       seen.add(source);
       return true;
@@ -99,39 +133,46 @@ export default function Admin() {
     }
 
     const existingSources = new Set(items.map((item) => normalizeSource(item.videoUrl || item.trailerUrl)));
-    const newLines = lines.filter((line) => !existingSources.has(normalizeSource(line)));
+    const newEntries = lines.filter((entry) => !existingSources.has(entry.source));
 
-    if (!newLines.length) {
+    if (!newEntries.length) {
       toast({ title: "Yeni içerik yok", description: "Bu embedlerin tamamı zaten ekli.", variant: "destructive" });
       return;
     }
 
+    const sourceName = String(form.get("source_name") || "").trim();
     const titlePrefix = String(form.get("title_prefix") || "Video").trim() || "Video";
-    const genres = String(form.get("genres") || "Yeni")
+    const titleMode = String(form.get("title_mode") || "auto");
+    const defaultGenres = String(form.get("genres") || "Yeni")
       .split(",")
       .map((genre) => genre.trim())
       .filter(Boolean);
-    const poster = String(form.get("poster_url") || "").trim();
-    const backdrop = String(form.get("backdrop_url") || poster).trim();
+    const defaultPoster = String(form.get("poster_url") || "").trim();
+    const defaultBackdrop = String(form.get("backdrop_url") || defaultPoster).trim();
     const now = Date.now().toString(36);
 
-    const payloads = newLines.map((line, index) => {
-      const title = `${titlePrefix} ${items.length + index + 1}`;
+    const payloads = newEntries.map((entry, index) => {
+      const number = items.length + index + 1;
+      const hostLabel = sourceName || getHostLabel(entry.source);
+      const title =
+        entry.title ||
+        (titleMode === "source" ? `${hostLabel} Video ${number}` : `${titlePrefix} ${number}`);
       const id = `${slugify(title)}-${now}-${index}`;
+      const poster = entry.poster || defaultPoster;
 
       return {
         id,
         title,
-        description: String(form.get("description") || "").trim(),
+        description: String(form.get("description") || `${hostLabel} kaynağından embed içerik.`).trim(),
         year: Number(form.get("year") || new Date().getFullYear()),
         duration: String(form.get("duration") || "").trim(),
         rating: String(form.get("rating") || "18+").trim(),
         type: (form.get("type") as "film" | "dizi") || "film",
-        genres,
+        genres: entry.genres?.length ? entry.genres : defaultGenres,
         poster_url: poster,
-        backdrop_url: backdrop,
-        video_url: line,
-        trailer_url: line,
+        backdrop_url: defaultBackdrop || poster,
+        video_url: entry.raw,
+        trailer_url: entry.raw,
         featured: form.get("featured") === "on",
         match_score: 90,
       };
@@ -151,7 +192,7 @@ export default function Admin() {
     await qc.invalidateQueries({ queryKey: ["content-rows"] });
     toast({
       title: `${payloads.length} video eklendi`,
-      description: lines.length - newLines.length ? `${lines.length - newLines.length} tekrar atlandı.` : undefined,
+      description: lines.length - newEntries.length ? `${lines.length - newEntries.length} tekrar atlandı.` : undefined,
     });
     setBulkOpen(false);
   };
@@ -248,12 +289,17 @@ ON CONFLICT DO NOTHING;`}
               <form onSubmit={(e) => { e.preventDefault(); bulkSave(new FormData(e.currentTarget)); }} className="space-y-3">
                 <Textarea
                   name="embed_lines"
-                  placeholder={'Her satıra bir embed URL veya iframe kodu yapıştır.\nhttps://site.test/embed/123\n<iframe src="https://site.test/embed/456"></iframe>'}
+                  placeholder={'Her satıra bir embed URL veya iframe kodu yapıştır.\nhttps://site.test/embed/123\nBaşlık | https://site.test/embed/456 | https://site.test/poster.jpg | Kategori'}
                   rows={9}
                   required
                 />
                 <div className="grid grid-cols-2 gap-3">
+                  <Input name="source_name" placeholder="Kaynak site adı" />
                   <Input name="title_prefix" defaultValue="Video" placeholder="Başlık ön eki" />
+                  <select name="title_mode" defaultValue="auto" className="h-10 rounded-md bg-input border border-border px-3">
+                    <option value="auto">Başlık: Ön ek + sıra</option>
+                    <option value="source">Başlık: Kaynak + sıra</option>
+                  </select>
                   <Input name="year" type="number" defaultValue={new Date().getFullYear()} placeholder="Yıl" />
                   <Input name="duration" placeholder="Süre" />
                   <Input name="rating" defaultValue="18+" placeholder="Yaş Sınırı" />
