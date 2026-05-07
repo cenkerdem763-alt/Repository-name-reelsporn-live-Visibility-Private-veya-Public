@@ -114,20 +114,20 @@ export function ReelsFeed({ items }: { items: Title[] }) {
         handleTouchEnd(event.changedTouches[0]?.clientX ?? 0, event.changedTouches[0]?.clientY ?? 0);
       }}
     >
-      <div className="fixed inset-x-0 top-0 z-30 bg-gradient-to-b from-black/75 via-black/35 to-transparent px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
-        <div className="flex items-center justify-between">
-          <div className="flex min-w-0 items-center gap-2">
-            <div className="shrink-0 text-xl font-black tracking-tight text-primary">
+      <div className="fixed inset-x-0 top-0 z-30 bg-gradient-to-b from-black/80 via-black/35 to-transparent px-5 pb-5 pt-[max(0.9rem,env(safe-area-inset-top))]">
+        <div className="flex items-start justify-between">
+          <div className="min-w-0">
+            <div className="text-2xl font-black leading-none tracking-tight text-primary drop-shadow-[0_0_16px_rgba(239,68,68,0.45)]">
               Reels<span className="text-white">Porn</span>
             </div>
-            <span className="truncate text-xs font-semibold text-white/80">
-              Türkiye de Tek ve İlk Reels Porno Sitesi
-            </span>
+            <p className="mt-1 max-w-[18rem] truncate text-[11px] font-semibold tracking-wide text-rose-100/90">
+              Türkiye'de Tek ve İlk Reels Porno Sitesi
+            </p>
           </div>
           <span className="h-10 w-10" aria-hidden="true" />
         </div>
 
-        <div className="mt-5 grid grid-cols-3 items-center text-sm font-bold text-white">
+        <div className="mt-4 grid grid-cols-3 items-center text-sm font-bold text-white">
           <button
             type="button"
             onClick={() => changeSection("live")}
