@@ -82,10 +82,34 @@ export default function Admin() {
       qc.invalidateQueries({ queryKey: ["titles"] });
       return;
     }
-    qc.invalidateQueries({ queryKey: ["titles"] });
-    qc.invalidateQueries({ queryKey: ["title", id] });
-    qc.invalidateQueries({ queryKey: ["featured-titles"] });
-    qc.invalidateQueries({ queryKey: ["content-rows"] });
+
+    const { data: stillExists, error: verifyError } = await supabase
+      .from("titles")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (verifyError) {
+      toast({ title: "Kontrol edilemedi", description: verifyError.message, variant: "destructive" });
+      qc.setQueryData(["titles"], previousTitles);
+      qc.invalidateQueries({ queryKey: ["titles"] });
+      return;
+    }
+    if (stillExists) {
+      toast({
+        title: "Silinemedi",
+        description: "Kayıt silme isteğinden sonra veritabanında hâlâ duruyor.",
+        variant: "destructive",
+      });
+      qc.setQueryData(["titles"], previousTitles);
+      qc.invalidateQueries({ queryKey: ["titles"] });
+      return;
+    }
+
+    await qc.invalidateQueries({ queryKey: ["titles"] });
+    await qc.invalidateQueries({ queryKey: ["title", id] });
+    await qc.invalidateQueries({ queryKey: ["featured-titles"] });
+    await qc.invalidateQueries({ queryKey: ["content-rows"] });
     toast({ title: "Silindi" });
   };
 
