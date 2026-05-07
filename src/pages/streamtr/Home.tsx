@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Eye, MoreVertical, Play, Plus } from "lucide-react";
 import { useAllTitles } from "@/hooks/useContent";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import type { Title } from "@/data/content";
 
 const categoryChips = ["Yeni", "Popüler", "HD", "Amatör", "Trend", "Türkçe", "Model", "Koleksiyon", "Öne Çıkan"];
+const PAGE_SIZE = 24;
 
 const placeholderSlots = [
   { title: "Yeni video alanı", image: "/content/poster-1.jpg", tag: "Trend" },
@@ -100,11 +101,32 @@ function PlaceholderTile({ slot }: { slot: (typeof placeholderSlots)[number] }) 
   );
 }
 
+function getPageNumbers(currentPage: number, totalPages: number) {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1);
+
+  const pages = new Set([1, 2, currentPage - 1, currentPage, currentPage + 1, totalPages]);
+  return [...pages]
+    .filter((page) => page >= 1 && page <= totalPages)
+    .sort((a, b) => a - b);
+}
+
 export default function Home() {
   const { data: titles = [] } = useAllTitles();
   const isAdmin = useIsAdmin();
   const canManageContent = isAdmin === true;
-  const slotsToShow = canManageContent ? Math.max(0, 24 - titles.length) : 0;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const totalPages = Math.max(1, Math.ceil(titles.length / PAGE_SIZE));
+  const requestedPage = Number(searchParams.get("page") || "1");
+  const currentPage = Math.min(Math.max(Number.isFinite(requestedPage) ? requestedPage : 1, 1), totalPages);
+  const pageItems = titles.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const slotsToShow = canManageContent && currentPage === 1 ? Math.max(0, PAGE_SIZE - pageItems.length) : 0;
+  const pageNumbers = getPageNumbers(currentPage, totalPages);
+
+  const goToPage = (page: number) => {
+    const nextPage = Math.min(Math.max(page, 1), totalPages);
+    setSearchParams(nextPage === 1 ? {} : { page: String(nextPage) });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <main className="min-h-screen bg-background pb-20">
@@ -148,13 +170,56 @@ export default function Home() {
         </header>
 
         <section className="grid grid-cols-1 gap-x-3 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {titles.map((item) => (
+          {pageItems.map((item) => (
             <VideoTile key={item.id} item={item} />
           ))}
           {canManageContent && placeholderSlots.slice(0, slotsToShow).map((slot) => (
             <PlaceholderTile key={slot.title} slot={slot} />
           ))}
         </section>
+
+        {totalPages > 1 && (
+          <nav className="mt-12 flex flex-wrap items-center justify-center gap-2" aria-label="Sayfalar">
+            <button
+              type="button"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="h-12 rounded-md bg-secondary px-6 text-sm font-bold text-foreground transition hover:bg-secondary/80 disabled:cursor-not-allowed disabled:opacity-35"
+            >
+              Prev
+            </button>
+            {pageNumbers.map((page, index) => {
+              const previousPage = pageNumbers[index - 1];
+              const showGap = previousPage && page - previousPage > 1;
+
+              return (
+                <div key={page} className="flex items-center gap-2">
+                  {showGap && <span className="px-2 text-muted-foreground">...</span>}
+                  <button
+                    type="button"
+                    onClick={() => goToPage(page)}
+                    className={`h-12 min-w-12 rounded-md px-4 text-sm font-black transition ${
+                      page === currentPage
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-foreground hover:bg-secondary/80"
+                    }`}
+                    aria-current={page === currentPage ? "page" : undefined}
+                  >
+                    {page}
+                  </button>
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="h-12 rounded-md bg-primary px-6 text-sm font-bold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-secondary disabled:text-foreground disabled:opacity-35"
+            >
+              Next
+            </button>
+          </nav>
+        )}
       </div>
     </main>
   );
