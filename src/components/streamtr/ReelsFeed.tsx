@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
 import { fallbackTitles, type Title } from "@/data/content";
 
 const demoVideos = [
@@ -125,18 +124,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
               Türkiye de Tek ve İlk Reels Porno Sitesi
             </span>
           </div>
-          {section === "reels" ? (
-              <button
-                type="button"
-                onClick={() => setMuted((value) => !value)}
-                className="grid h-10 w-10 place-items-center rounded-full bg-black/35 text-white backdrop-blur-sm"
-                aria-label={muted ? "Sesi aç" : "Sesi kapat"}
-              >
-                {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-              </button>
-          ) : (
-            <span className="h-10 w-10" aria-hidden="true" />
-          )}
+          <span className="h-10 w-10" aria-hidden="true" />
         </div>
 
         <div className="mt-5 grid grid-cols-3 items-center text-sm font-bold text-white">
@@ -222,14 +210,6 @@ export function ReelsFeed({ items }: { items: Title[] }) {
                   </p>
                 </div>
 
-                <div className="absolute left-5 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2">
-                  {feedItems.map((dot) => (
-                    <span
-                      key={dot.id}
-                      className={`h-1.5 w-1.5 rounded-full transition ${dot.id === item.id ? "bg-white" : "bg-white/35"}`}
-                    />
-                  ))}
-                </div>
               </article>
             );
           })}
