@@ -1,18 +1,24 @@
 import { useEffect, useRef, useState } from "react";
+import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { fallbackTitles, type Title } from "@/data/content";
 
 const demoVideos = [
   "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
   "https://www.w3schools.com/html/mov_bbb.mp4",
 ];
+const sections = ["live", "reels", "categories"] as const;
+type MobileSection = typeof sections[number];
+const categories = ["Amatör", "Türk", "Trend", "Yeni", "Popüler", "Canlıya Yakın"];
 
 export function ReelsFeed({ items }: { items: Title[] }) {
+  const navigate = useNavigate();
   const articleRefs = useRef<(HTMLElement | null)[]>([]);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [section, setSection] = useState<"reels" | "live">("reels");
+  const [section, setSection] = useState<MobileSection>("reels");
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
@@ -69,11 +75,12 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     const verticalDelta = y - touchStartY.current;
     if (Math.abs(delta) < 12) return;
     if (Math.abs(delta) < Math.abs(verticalDelta) * 1.25) return;
+    const currentIndex = sections.indexOf(section);
 
     const nextDrag =
-      section === "reels"
-        ? Math.max(0, Math.min(viewportWidth, delta))
-        : Math.min(0, Math.max(-viewportWidth, delta));
+      delta > 0
+        ? Math.max(0, Math.min(currentIndex * viewportWidth, delta))
+        : Math.min(0, Math.max(-((sections.length - 1 - currentIndex) * viewportWidth), delta));
 
     setIsDragging(true);
     setDragX(nextDrag);
@@ -86,23 +93,25 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     setDragX(0);
     if (Math.abs(delta) < 120) return;
     if (Math.abs(delta) < Math.abs(verticalDelta) * 1.6) return;
-    if (section === "reels" && delta > 0) changeSection("live");
-    if (section === "live" && delta < 0) changeSection("reels");
+    const currentIndex = sections.indexOf(section);
+    const nextIndex = delta > 0 ? currentIndex - 1 : currentIndex + 1;
+    const nextSection = sections[nextIndex];
+    if (nextSection) changeSection(nextSection);
   };
 
-  const changeSection = (next: "reels" | "live") => {
+  const changeSection = (next: MobileSection) => {
     setSection(next);
     setDragX(0);
     setIsDragging(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const baseX = section === "live" ? 0 : -viewportWidth;
+  const baseX = -(sections.indexOf(section) * viewportWidth);
   const trackX = baseX + dragX;
 
   return (
     <section
-      className={`relative overflow-x-hidden bg-black md:hidden ${section === "live" ? "h-[100dvh] overflow-y-hidden" : "min-h-[200dvh]"}`}
+      className={`relative overflow-x-hidden bg-black md:hidden ${section === "reels" ? "min-h-[200dvh]" : "h-[100dvh] overflow-y-hidden"}`}
       onTouchStart={(event) => {
         touchStartX.current = event.touches[0]?.clientX ?? 0;
         touchStartY.current = event.touches[0]?.clientY ?? 0;
@@ -124,7 +133,14 @@ export function ReelsFeed({ items }: { items: Title[] }) {
               Türkiye'de Tek ve İlk Reels Porno Sitesi
             </p>
           </div>
-          <span className="h-10 w-10" aria-hidden="true" />
+          <button
+            type="button"
+            onClick={() => navigate("/ara")}
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm"
+            aria-label="Ara"
+          >
+            <Search className="h-5 w-5" />
+          </button>
         </div>
 
         <div className="mt-4 grid grid-cols-3 items-center text-sm font-bold text-white">
@@ -148,12 +164,21 @@ export function ReelsFeed({ items }: { items: Title[] }) {
               <span className="absolute -bottom-2 left-1/2 h-0.5 w-7 -translate-x-1/2 rounded-full bg-primary" />
             )}
           </button>
-          <span aria-hidden="true" />
+          <button
+            type="button"
+            onClick={() => changeSection("categories")}
+            className={`relative justify-self-end ${section === "categories" ? "text-white" : "text-white/70"}`}
+          >
+            Kategoriler
+            {section === "categories" && (
+              <span className="absolute -bottom-2 left-1/2 h-0.5 w-10 -translate-x-1/2 rounded-full bg-primary" />
+            )}
+          </button>
         </div>
       </div>
 
       <div
-        className={`flex w-[200vw] will-change-transform ${isDragging ? "" : "transition-transform duration-500 ease-out"}`}
+        className={`flex w-[300vw] will-change-transform ${isDragging ? "" : "transition-transform duration-500 ease-out"}`}
         style={{ transform: `translate3d(${trackX}px, 0, 0)` }}
       >
         <div className="relative h-[100dvh] w-screen shrink-0 overflow-hidden bg-black text-white">
@@ -213,6 +238,28 @@ export function ReelsFeed({ items }: { items: Title[] }) {
               </article>
             );
           })}
+        </div>
+
+        <div className="relative h-[100dvh] w-screen shrink-0 overflow-hidden bg-black text-white">
+          <img src={feedItems[1]?.backdrop || fallbackTitles[1].backdrop} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="relative z-10 flex h-full flex-col justify-center px-5 pt-28">
+            <h2 className="text-3xl font-black tracking-tight">Kategoriler</h2>
+            <p className="mt-2 max-w-xs text-sm leading-6 text-white/70">
+              İzlemek istediğin akışı hızlıca seç.
+            </p>
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  className="rounded-xl border border-white/10 bg-white/10 px-4 py-5 text-left text-sm font-bold text-white shadow-lg shadow-black/20 backdrop-blur-md"
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>
