@@ -1,23 +1,11 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { CheckCircle2, Eye, MoreVertical, Play, Plus } from "lucide-react";
+import { CheckCircle2, Eye, MoreVertical, Play } from "lucide-react";
 import { ReelsFeed } from "@/components/streamtr/ReelsFeed";
 import { useAllTitles } from "@/hooks/useContent";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
 import type { Title } from "@/data/content";
 
 const categoryChips = ["Yeni", "Popüler", "HD", "Amatör", "Trend", "Türkçe", "Model", "Koleksiyon", "Öne Çıkan"];
 const PAGE_SIZE = 24;
-
-const placeholderSlots = [
-  { title: "Yeni video alanı", image: "/content/poster-1.jpg", tag: "Trend" },
-  { title: "Model seçkisi alanı", image: "/content/poster-4.jpg", tag: "Yeni" },
-  { title: "Öne çıkan video alanı", image: "/content/poster-7.jpg", tag: "Popüler" },
-  { title: "Gece vitrini alanı", image: "/content/hero-1.jpg", tag: "HD" },
-  { title: "Stüdyo video alanı", image: "/content/hero-3.jpg", tag: "Premium" },
-  { title: "Koleksiyon alanı", image: "/content/poster-8.jpg", tag: "Seçki" },
-  { title: "Yeni embed alanı", image: "/content/poster-2.jpg", tag: "Embed" },
-  { title: "Vitrin video alanı", image: "/content/poster-5.jpg", tag: "Özel" },
-];
 
 function metricFromId(id: string) {
   const total = id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
@@ -72,36 +60,6 @@ function VideoTile({ item }: { item: Title }) {
   );
 }
 
-function PlaceholderTile({ slot }: { slot: (typeof placeholderSlots)[number] }) {
-  return (
-    <article className="group min-w-0 overflow-hidden">
-      <Link to="/admin" className="block">
-        <div className="relative aspect-video overflow-hidden border border-dashed border-primary/35 bg-secondary">
-          <img
-            src={slot.image}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover opacity-55 grayscale-[0.25] transition duration-300 group-hover:scale-[1.03] group-hover:opacity-75"
-          />
-          <div className="absolute inset-0 bg-black/55" />
-          <div className="absolute left-2 top-2 rounded bg-background/80 px-2 py-0.5 text-[11px] font-bold text-foreground backdrop-blur">
-            {slot.tag}
-          </div>
-          <div className="absolute inset-0 grid place-items-center">
-            <div className="grid h-11 w-11 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg transition group-hover:scale-110">
-              <Plus className="h-5 w-5" />
-            </div>
-          </div>
-        </div>
-      </Link>
-      <div className="pt-2">
-        <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-foreground">{slot.title}</h3>
-        <p className="mt-1 text-xs text-muted-foreground">Admin panelden embed ekle</p>
-      </div>
-    </article>
-  );
-}
-
 function getPageNumbers(currentPage: number, totalPages: number) {
   if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1);
 
@@ -113,14 +71,11 @@ function getPageNumbers(currentPage: number, totalPages: number) {
 
 export default function Home() {
   const { data: titles = [] } = useAllTitles();
-  const isAdmin = useIsAdmin();
-  const canManageContent = isAdmin === true;
   const [searchParams, setSearchParams] = useSearchParams();
   const totalPages = Math.max(1, Math.ceil(titles.length / PAGE_SIZE));
   const requestedPage = Number(searchParams.get("page") || "1");
   const currentPage = Math.min(Math.max(Number.isFinite(requestedPage) ? requestedPage : 1, 1), totalPages);
   const pageItems = titles.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  const slotsToShow = canManageContent && currentPage === 1 ? Math.max(0, PAGE_SIZE - pageItems.length) : 0;
   const pageNumbers = getPageNumbers(currentPage, totalPages);
 
   const goToPage = (page: number) => {
@@ -132,7 +87,7 @@ export default function Home() {
   return (
     <>
       <ReelsFeed items={titles} />
-      <main className="hidden min-h-screen bg-background pb-20 md:block">
+      <main className="hidden min-h-screen bg-background pb-20 lg:block">
       <section className="border-b border-primary/20 bg-[linear-gradient(135deg,rgba(239,68,68,0.16),rgba(24,24,27,0.96)_42%,rgba(9,9,11,1))] px-4 pb-6 pt-24 shadow-[0_18px_60px_rgba(0,0,0,0.22)] md:px-8">
         <div className="mx-auto max-w-[1480px]">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -140,15 +95,6 @@ export default function Home() {
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-primary/90">Keşfet</p>
               <h1 className="mt-1 text-2xl font-black tracking-tight text-foreground md:text-3xl">Kategori vitrini</h1>
             </div>
-            {canManageContent && (
-              <Link
-                to="/admin"
-                className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground hover:bg-primary/90"
-              >
-                <Plus className="h-4 w-4" />
-                Video Ekle
-              </Link>
-            )}
           </div>
           <nav className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {categoryChips.map((chip, index) => (
@@ -175,9 +121,6 @@ export default function Home() {
         <section className="grid grid-cols-1 gap-x-3 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {pageItems.map((item) => (
             <VideoTile key={item.id} item={item} />
-          ))}
-          {canManageContent && placeholderSlots.slice(0, slotsToShow).map((slot) => (
-            <PlaceholderTile key={slot.title} slot={slot} />
           ))}
         </section>
 

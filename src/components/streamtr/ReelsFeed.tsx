@@ -138,7 +138,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
 
   return (
     <section
-      className={`relative overflow-x-hidden bg-black md:hidden ${section === "reels" ? "min-h-[200dvh]" : "h-[100dvh] overflow-y-hidden"}`}
+      className={`relative overflow-x-hidden bg-black lg:hidden ${section === "reels" ? "min-h-[200dvh]" : "h-[100dvh] overflow-y-hidden"}`}
       onTouchStart={(event) => {
         touchStartX.current = event.touches[0]?.clientX ?? 0;
         touchStartY.current = event.touches[0]?.clientY ?? 0;
