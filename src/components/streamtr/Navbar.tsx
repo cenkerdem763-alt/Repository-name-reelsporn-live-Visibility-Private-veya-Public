@@ -1,5 +1,5 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, LogIn, LogOut, PlayCircle, Search, User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ChevronDown, LogIn, LogOut, PlayCircle, Search, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useApp } from "@/contexts/AppContext";
 import {
@@ -24,24 +24,24 @@ export function Navbar() {
         scrolled ? "bg-background/95 backdrop-blur-md shadow-lg" : "bg-gradient-to-b from-background/90 to-transparent"
       }`}
     >
-      <div className="flex h-16 items-center gap-8 px-4 md:px-10">
+      <div className="grid h-16 grid-cols-[auto_1fr_auto] items-center gap-4 px-4 md:px-10">
         <Link to="/" className="inline-flex items-center gap-2 text-2xl font-black tracking-tighter text-primary">
           <PlayCircle className="h-7 w-7 fill-primary/20" />
           Reels<span className="text-foreground">Porn</span>
         </Link>
 
-        <div className="ml-auto flex items-center gap-2 md:gap-4">
+        <div className="flex justify-center">
           <button
             onClick={() => navigate("/ara")}
-            className="rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition"
+            className="flex h-10 w-full max-w-[520px] items-center gap-3 rounded-full border border-border bg-secondary/80 px-4 text-left text-sm text-muted-foreground transition hover:border-primary/50 hover:bg-secondary hover:text-foreground"
             aria-label="Ara"
           >
-            <Search className="h-5 w-5" />
+            <Search className="h-5 w-5 shrink-0" />
+            <span className="hidden sm:block">Video, kategori veya etiket ara</span>
           </button>
-          <button className="hidden sm:block rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition" aria-label="Bildirimler">
-            <Bell className="h-5 w-5" />
-          </button>
+        </div>
 
+        <div className="ml-auto flex items-center gap-2 md:gap-4">
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 outline-none group">
