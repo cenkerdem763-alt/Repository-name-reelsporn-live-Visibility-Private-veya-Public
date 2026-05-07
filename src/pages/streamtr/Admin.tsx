@@ -3,7 +3,6 @@ import { Plus, Pencil, Trash2, Film, Users, BarChart3, Tag, ShieldAlert } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,10 +63,19 @@ export default function Admin() {
 
   const remove = async (id: string) => {
     if (!confirm("Bu içeriği silmek istediğinden emin misin?")) return;
+    qc.setQueryData<Title[]>(["titles"], (current) => current?.filter((item) => item.id !== id) ?? []);
+    await supabase.from("content_row_items").delete().eq("title_id", id);
     const { error } = await supabase.from("titles").delete().eq("id", id);
-    if (error) { toast({ title: "Hata", description: error.message, variant: "destructive" }); return; }
+    if (error) {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+      qc.invalidateQueries({ queryKey: ["titles"] });
+      return;
+    }
     qc.invalidateQueries({ queryKey: ["titles"] });
+    qc.invalidateQueries({ queryKey: ["title", id] });
+    qc.invalidateQueries({ queryKey: ["featured-titles"] });
     qc.invalidateQueries({ queryKey: ["content-rows"] });
+    toast({ title: "Silindi" });
   };
 
   if (isAdmin === null) {
@@ -120,7 +128,12 @@ ON CONFLICT DO NOTHING;`}
               <Input name="genres" defaultValue={editing?.genres.join(", ")} placeholder="Türler (virgülle)" />
               <Input name="poster_url" defaultValue={editing?.poster} placeholder="Poster URL" />
               <Input name="backdrop_url" defaultValue={editing?.backdrop} placeholder="Arka plan URL" />
-              <Input name="video_url" defaultValue={editing?.videoUrl} placeholder="Video URL (.mp4)" />
+              <Textarea
+                name="video_url"
+                defaultValue={editing?.videoUrl}
+                placeholder='Video URL, embed URL veya iframe kodu. Örn: /videos/ornek.mp4 ya da <iframe src="..."></iframe>'
+                rows={3}
+              />
               <label className="flex items-center gap-3">
                 <Switch name="featured" defaultChecked={editing?.featured} />
                 <span className="text-sm">Ana sayfa hero slider'da göster</span>

@@ -20,6 +20,18 @@ const trSample = [
   { from: 14, to: 20, text: "İstanbul'un sokakları sırlarla dolu." },
 ];
 
+function getEmbedSrc(value: string) {
+  const iframeSrc = value.match(/<iframe[^>]+src=["']([^"']+)["']/i)?.[1];
+  return iframeSrc || value;
+}
+
+function isEmbedSource(value: string) {
+  const source = value.trim();
+  if (source.startsWith("<iframe")) return true;
+  if (source.includes("/embed/")) return true;
+  return !/\.(mp4|webm|ogg|m3u8)(\?|#|$)/i.test(source);
+}
+
 export default function Player() {
   const { id = "" } = useParams();
   const { data: item, isLoading } = useTitle(id);
@@ -83,22 +95,35 @@ export default function Player() {
   if (!item) return <div className="p-10">İçerik bulunamadı.</div>;
   const currentSub = sub !== "off" && sub === "tr" ? trSample.find((c) => time >= c.from && time <= c.to) : null;
   const videoSrc = item.videoUrl || item.trailerUrl || sampleVideoUrl;
+  const embed = isEmbedSource(videoSrc);
+  const embedSrc = embed ? getEmbedSrc(videoSrc) : "";
 
   return (
     <div
       ref={wrapRef}
       className="fixed inset-0 z-[100] bg-black grid place-items-center select-none"
       onMouseMove={resetHide}
-      onClick={(e) => { if (e.target === e.currentTarget) togglePlay(); }}
+      onClick={(e) => { if (!embed && e.target === e.currentTarget) togglePlay(); }}
     >
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        src={videoSrc}
-        className="h-full w-full object-contain"
-        onClick={togglePlay}
-      />
+      {embed ? (
+        <iframe
+          src={embedSrc}
+          title={item.title}
+          className="h-full w-full border-0"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+          allowFullScreen
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      ) : (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          src={videoSrc}
+          className="h-full w-full object-contain"
+          onClick={togglePlay}
+        />
+      )}
 
       {currentSub && (
         <div className="absolute bottom-28 left-1/2 -translate-x-1/2 max-w-[80%] text-center px-4 py-2 rounded bg-background/70 text-foreground text-lg md:text-2xl font-medium pointer-events-none">
@@ -108,7 +133,7 @@ export default function Player() {
 
       <div className={`absolute inset-0 transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"} pointer-events-none`}>
         <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/80 to-transparent" />
-        <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-black/90 to-transparent" />
+        {!embed && <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-black/90 to-transparent" />}
 
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-foreground pointer-events-auto">
           <button onClick={() => nav(-1)} className="flex items-center gap-2 hover:opacity-80">
@@ -116,7 +141,7 @@ export default function Player() {
           </button>
         </div>
 
-        <div className="absolute bottom-0 inset-x-0 px-6 pb-6 space-y-3 pointer-events-auto">
+        {!embed && <div className="absolute bottom-0 inset-x-0 px-6 pb-6 space-y-3 pointer-events-auto">
           <input
             type="range" min={0} max={duration || 0} value={time}
             onChange={(e) => seekTo(Number(e.target.value))}
@@ -159,7 +184,7 @@ export default function Player() {
               )}
             </div>
           </div>
-        </div>
+        </div>}
       </div>
     </div>
   );
