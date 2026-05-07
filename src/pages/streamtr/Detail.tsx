@@ -1,70 +1,149 @@
-import { useNavigate, useParams } from "react-router-dom";
-import { Check, Heart, Play, Plus, Share2 } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+import { CheckCircle2, Eye, Heart, Play, Share2, ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/contexts/AppContext";
-import { ContentRow } from "@/components/streamtr/ContentRow";
 import { useTitle, useAllTitles } from "@/hooks/useContent";
+import { sampleVideoUrl, type Title } from "@/data/content";
+
+function getEmbedSrc(value: string) {
+  return value.match(/<iframe[^>]+src=["']([^"']+)["']/i)?.[1] || value;
+}
+
+function isEmbedSource(value: string) {
+  const source = value.trim();
+  if (source.startsWith("<iframe")) return true;
+  if (source.includes("/embed/")) return true;
+  return !/\.(mp4|webm|ogg|m3u8)(\?|#|$)/i.test(source);
+}
+
+function metricFromId(id: string) {
+  const total = id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return `${Math.max(18, total % 980)}K`;
+}
+
+function RelatedCard({ item }: { item: Title }) {
+  const image = item.backdrop || item.poster || "/placeholder.svg";
+
+  return (
+    <Link to={`/icerik/${item.id}`} className="group grid grid-cols-[9rem_1fr] gap-3">
+      <div className="relative aspect-video overflow-hidden rounded bg-secondary">
+        <img src={image} alt={item.title} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-[1.03]" />
+        <div className="absolute bottom-1 right-1 rounded bg-black/80 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+          {item.duration || "12:00"}
+        </div>
+      </div>
+      <div className="min-w-0">
+        <h3 className="line-clamp-2 text-sm font-semibold leading-5 group-hover:text-primary">{item.title}</h3>
+        <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+          <span>{item.genres[0] || "ReelsPorn"}</span>
+          <CheckCircle2 className="h-3 w-3 text-primary" />
+        </div>
+        <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+          <Eye className="h-3.5 w-3.5" />
+          {metricFromId(item.id)}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function Detail() {
   const { id = "" } = useParams();
   const { data: item, isLoading } = useTitle(id);
   const { data: titles = [] } = useAllTitles();
-  const nav = useNavigate();
-  const { favorites, toggleFavorite, watchlist, toggleWatchlist } = useApp();
+  const { favorites, toggleFavorite } = useApp();
+
   if (isLoading) return <div className="pt-32 px-10 text-muted-foreground">Yükleniyor...</div>;
   if (!item) return <div className="pt-32 px-10">İçerik bulunamadı.</div>;
+
   const fav = favorites.includes(item.id);
-  const inList = watchlist.includes(item.id);
-  const similar = titles.filter((t) => t.id !== item.id).slice(0, 6);
+  const videoSrc = item.videoUrl || item.trailerUrl || sampleVideoUrl;
+  const embed = isEmbedSource(videoSrc);
+  const related = titles.filter((title) => title.id !== item.id).slice(0, 10);
 
   return (
-    <article className="pb-12">
-      <section className="relative h-[70vh] min-h-[480px]">
-        <img src={item.backdrop} alt={item.title} className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 gradient-hero" />
-        <div className="absolute inset-0 gradient-hero-side" />
-        <div className="relative z-10 h-full flex items-end px-4 md:px-10 pb-10">
-          <div className="max-w-2xl space-y-4 animate-fade-in-up">
-            <h1 className="text-4xl md:text-6xl font-black tracking-tight text-shadow-hero">{item.title}</h1>
-            <div className="flex items-center gap-3 text-sm">
-              <span className="text-emerald-400 font-semibold">%{item.match} eşleşme</span>
-              <span>{item.year}</span>
-              <span className="border border-foreground/40 px-1.5 text-xs">{item.rating}</span>
-              <span>{item.duration}</span>
-              <span className="uppercase tracking-wider text-xs px-2 py-0.5 rounded bg-primary/20 text-primary font-semibold">{item.type}</span>
+    <main className="min-h-screen bg-background px-4 pb-16 pt-20 md:px-8">
+      <div className="mx-auto grid max-w-[1480px] gap-8 xl:grid-cols-[minmax(0,1fr)_25rem]">
+        <section className="min-w-0">
+          <div className="overflow-hidden rounded bg-black shadow-[0_18px_70px_rgba(0,0,0,0.35)]">
+            <div className="relative aspect-video bg-black">
+              {embed ? (
+                <iframe
+                  src={getEmbedSrc(videoSrc)}
+                  title={item.title}
+                  className="h-full w-full border-0"
+                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              ) : (
+                <video
+                  src={videoSrc}
+                  poster={item.backdrop || item.poster}
+                  controls
+                  playsInline
+                  className="h-full w-full bg-black"
+                />
+              )}
             </div>
-            <p className="text-base md:text-lg max-w-xl text-foreground/90 text-shadow-hero">{item.description}</p>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Button size="lg" onClick={() => nav(`/izle/${item.id}`)} className="bg-foreground text-background hover:bg-foreground/90 font-bold">
-                <Play className="mr-2 h-5 w-5 fill-background" /> Oynat
+          </div>
+
+          <div className="mt-5 border-b border-border pb-5">
+            <h1 className="text-xl font-black leading-tight md:text-2xl">{item.title}</h1>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Eye className="h-4 w-4" />
+                {metricFromId(item.id)} görüntülenme
+              </span>
+              <span>{item.year}</span>
+              <span>{item.duration || "Video"}</span>
+              <span className="rounded border border-border px-1.5 py-0.5 text-xs">{item.rating || "18+"}</span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-sm font-bold">
+                <span>{item.genres[0] || "ReelsPorn"}</span>
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+              </div>
+              <p className="mt-1 line-clamp-2 max-w-3xl text-sm text-muted-foreground">
+                {item.description || item.genres.join(", ")}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" size="sm" className="gap-2">
+                <ThumbsUp className="h-4 w-4" />
+                Beğen
               </Button>
-              <Button size="lg" variant="secondary" onClick={() => toggleWatchlist(item.id)} className="bg-secondary/80 hover:bg-secondary backdrop-blur">
-                {inList ? <Check className="mr-2 h-5 w-5" /> : <Plus className="mr-2 h-5 w-5" />}
-                {inList ? "Listemde" : "Listeme Ekle"}
+              <Button variant="secondary" size="sm" onClick={() => toggleFavorite(item.id)} className="gap-2">
+                <Heart className={`h-4 w-4 ${fav ? "fill-primary text-primary" : ""}`} />
+                Favori
               </Button>
-              <Button size="icon" variant="secondary" onClick={() => toggleFavorite(item.id)} className="rounded-full bg-secondary/80 hover:bg-secondary backdrop-blur" aria-label="Favorilere ekle">
-                <Heart className={`h-5 w-5 ${fav ? "fill-primary text-primary" : ""}`} />
+              <Button variant="secondary" size="sm" className="gap-2">
+                <Share2 className="h-4 w-4" />
+                Paylaş
               </Button>
-              <Button size="icon" variant="secondary" className="rounded-full bg-secondary/80 hover:bg-secondary backdrop-blur" aria-label="Paylaş">
-                <Share2 className="h-5 w-5" />
+              <Button asChild size="sm" className="gap-2">
+                <Link to={`/izle/${item.id}`}>
+                  <Play className="h-4 w-4 fill-current" />
+                  Tam ekran
+                </Link>
               </Button>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="px-4 md:px-10 mt-8 grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-2">
-          <div><span className="text-muted-foreground">Türler: </span>{item.genres.join(", ")}</div>
-          <div><span className="text-muted-foreground">Yapım: </span>{item.year} • ReelsPorn Originals</div>
-          <div><span className="text-muted-foreground">Altyazı: </span>Türkçe, İngilizce, Arapça</div>
-          <div><span className="text-muted-foreground">Ses: </span>Türkçe 5.1, İngilizce 5.1</div>
-        </div>
-      </section>
-
-      <div className="mt-10">
-        <ContentRow title="Benzer İçerikler" items={similar} />
+        <aside className="min-w-0">
+          <h2 className="mb-4 text-lg font-black">Benzer videolar</h2>
+          <div className="space-y-4">
+            {related.map((title) => (
+              <RelatedCard key={title.id} item={title} />
+            ))}
+          </div>
+        </aside>
       </div>
-    </article>
+    </main>
   );
 }
