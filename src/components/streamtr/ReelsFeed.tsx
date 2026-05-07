@@ -130,7 +130,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
               Canlı Yayın
             </p>
             <h2 className="text-3xl font-black leading-tight">
-              Şu an aktif yayın yok
+              Off Stream
             </h2>
             <p className="mt-4 max-w-xs text-sm leading-6 text-white/75">
               Yeni yayın başladığında burada görünecek.
