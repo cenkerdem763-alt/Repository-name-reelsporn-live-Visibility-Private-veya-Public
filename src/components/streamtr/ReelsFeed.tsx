@@ -31,6 +31,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     videoUrl: demoVideos[index],
   }));
   const liveBackdrop = "/content/live-offstream-cover.png";
+  const categoriesBackdrop = "/content/categories-cover.png";
 
   useEffect(() => {
     const updateViewport = () => setViewportWidth(window.innerWidth);
@@ -267,7 +268,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
         </div>
 
         <div className="relative h-[100dvh] w-screen shrink-0 overflow-hidden bg-black text-white">
-          <img src={feedItems[1]?.backdrop || fallbackTitles[1].backdrop} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={categoriesBackdrop} alt="" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-black/70" />
           <div className="relative z-10 flex h-full flex-col justify-center px-5 pt-28">
             <h2 className="text-3xl font-black tracking-tight">Kategoriler</h2>
