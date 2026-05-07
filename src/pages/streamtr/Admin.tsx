@@ -63,11 +63,22 @@ export default function Admin() {
 
   const remove = async (id: string) => {
     if (!confirm("Bu içeriği silmek istediğinden emin misin?")) return;
+    const previousTitles = qc.getQueryData<Title[]>(["titles"]);
     qc.setQueryData<Title[]>(["titles"], (current) => current?.filter((item) => item.id !== id) ?? []);
-    await supabase.from("content_row_items").delete().eq("title_id", id);
-    const { error } = await supabase.from("titles").delete().eq("id", id);
+    const { error, data } = await supabase.from("titles").delete().eq("id", id).select("id");
     if (error) {
       toast({ title: "Hata", description: error.message, variant: "destructive" });
+      qc.setQueryData(["titles"], previousTitles);
+      qc.invalidateQueries({ queryKey: ["titles"] });
+      return;
+    }
+    if (!data?.length) {
+      toast({
+        title: "Silinemedi",
+        description: "Veritabanı kaydı silmedi. Admin rolü veya delete policy eksik olabilir.",
+        variant: "destructive",
+      });
+      qc.setQueryData(["titles"], previousTitles);
       qc.invalidateQueries({ queryKey: ["titles"] });
       return;
     }
