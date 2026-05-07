@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Radio, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { fallbackTitles, type Title } from "@/data/content";
 
 const demoVideos = [
@@ -123,13 +123,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
           <div className="absolute inset-0 bg-black/60" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
           <div className="relative z-10 flex h-full flex-col items-center justify-center px-8 text-center">
-            <div className="mb-6 grid h-20 w-20 place-items-center rounded-full border border-primary/50 bg-primary/15 text-primary shadow-[0_0_60px_hsl(var(--primary)/0.35)]">
-              <Radio className="h-9 w-9" />
-            </div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
-              Canlı Yayın
-            </p>
-            <h2 className="text-3xl font-black leading-tight">
+            <h2 className="text-4xl font-black leading-tight text-rose-100 drop-shadow-[0_0_24px_rgba(244,63,94,0.55)]">
               Off Stream
             </h2>
             <p className="mt-4 max-w-xs text-sm leading-6 text-white/75">
