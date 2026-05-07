@@ -216,17 +216,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/90" />
 
                 <div className="absolute inset-x-0 bottom-0 z-10 p-5 pb-8">
-                  <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
-                    <span>%{item.match} eşleşme</span>
-                    <span className="h-1 w-1 rounded-full bg-white/50" />
-                    <span>{item.type === "film" ? "Film" : "Dizi"}</span>
-                  </div>
                   <h2 className="text-4xl font-black leading-none tracking-tight">{item.title}</h2>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-white/80">
-                    <span>{item.year}</span>
-                    <span className="rounded-full border border-white/25 px-2 py-1">{item.duration}</span>
-                    <span>{item.rating}</span>
-                  </div>
                   <p className="mt-4 max-w-[18rem] text-sm leading-6 text-white/88 line-clamp-3">
                     {item.description}
                   </p>
