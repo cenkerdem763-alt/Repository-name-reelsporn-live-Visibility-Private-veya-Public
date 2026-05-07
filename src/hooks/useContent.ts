@@ -1,13 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fallbackRows, fallbackTitles, mapTitle, type Title, type Row } from "@/data/content";
+import {
+  buildWordPressRows,
+  fetchWordPressTitle,
+  fetchWordPressTitles,
+  hasWordPressConfig,
+} from "@/integrations/wordpress/client";
 
 const hasSupabaseConfig = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
 export function useAllTitles() {
   return useQuery({
-    queryKey: ["titles"],
+    queryKey: ["titles", hasWordPressConfig ? "wordpress" : "supabase"],
     queryFn: async (): Promise<Title[]> => {
+      if (hasWordPressConfig) {
+        return fetchWordPressTitles();
+      }
+
       const { data, error } = await supabase.from("titles").select("*").order("created_at", { ascending: false });
       if (error) {
         console.warn("Using fallback titles because Supabase titles failed:", error.message);
@@ -21,9 +31,13 @@ export function useAllTitles() {
 
 export function useTitle(id: string | undefined) {
   return useQuery({
-    queryKey: ["title", id],
+    queryKey: ["title", hasWordPressConfig ? "wordpress" : "supabase", id],
     enabled: !!id,
     queryFn: async (): Promise<Title | null> => {
+      if (hasWordPressConfig) {
+        return fetchWordPressTitle(id!);
+      }
+
       const { data, error } = await supabase.from("titles").select("*").eq("id", id!).maybeSingle();
       if (error) {
         console.warn("Using fallback title because Supabase title failed:", error.message);
@@ -36,8 +50,13 @@ export function useTitle(id: string | undefined) {
 
 export function useFeaturedTitles() {
   return useQuery({
-    queryKey: ["featured-titles"],
+    queryKey: ["featured-titles", hasWordPressConfig ? "wordpress" : "supabase"],
     queryFn: async (): Promise<Title[]> => {
+      if (hasWordPressConfig) {
+        const titles = await fetchWordPressTitles();
+        return titles.filter((title) => title.featured);
+      }
+
       const { data, error } = await supabase.from("titles").select("*").eq("featured", true).order("match_score", { ascending: false });
       if (error) {
         console.warn("Using fallback featured titles because Supabase featured titles failed:", error.message);
@@ -51,8 +70,13 @@ export function useFeaturedTitles() {
 
 export function useContentRows() {
   return useQuery({
-    queryKey: ["content-rows"],
+    queryKey: ["content-rows", hasWordPressConfig ? "wordpress" : "supabase"],
     queryFn: async (): Promise<Row[]> => {
+      if (hasWordPressConfig) {
+        const titles = await fetchWordPressTitles();
+        return buildWordPressRows(titles);
+      }
+
       const { data: rows, error: e1 } = await supabase.from("content_rows").select("id, title, position").order("position");
       if (e1) {
         console.warn("Using fallback rows because Supabase content rows failed:", e1.message);
