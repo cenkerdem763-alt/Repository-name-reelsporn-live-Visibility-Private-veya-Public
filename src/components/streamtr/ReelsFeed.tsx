@@ -61,13 +61,18 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     const verticalDelta = y - touchStartY.current;
     if (Math.abs(delta) < 120) return;
     if (Math.abs(delta) < Math.abs(verticalDelta) * 1.6) return;
-    if (delta < 0) setSection("live");
-    if (delta > 0) setSection("reels");
+    if (delta < 0) changeSection("live");
+    if (delta > 0) changeSection("reels");
+  };
+
+  const changeSection = (next: "reels" | "live") => {
+    setSection(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <section
-      className="relative md:hidden bg-black"
+      className={`relative overflow-x-hidden bg-black md:hidden ${section === "live" ? "h-[100dvh] overflow-y-hidden" : "min-h-[200dvh]"}`}
       onTouchStart={(event) => {
         touchStartX.current = event.touches[0]?.clientX ?? 0;
         touchStartY.current = event.touches[0]?.clientY ?? 0;
@@ -103,7 +108,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
         <div className="mt-5 grid grid-cols-3 items-center text-sm font-bold text-white">
           <button
             type="button"
-            onClick={() => setSection("live")}
+            onClick={() => changeSection("live")}
             className={`relative justify-self-start ${section === "live" ? "text-white" : "text-white/70"}`}
           >
             Canlı Yayın
@@ -113,7 +118,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
           </button>
           <button
             type="button"
-            onClick={() => setSection("reels")}
+            onClick={() => changeSection("reels")}
             className={`relative justify-self-center ${section === "reels" ? "text-white" : "text-white/70"}`}
           >
             Reels
@@ -125,8 +130,75 @@ export function ReelsFeed({ items }: { items: Title[] }) {
         </div>
       </div>
 
-      {section === "live" ? (
-        <div className="relative h-[100dvh] overflow-hidden bg-black text-white">
+      <div
+        className={`flex w-[200vw] transition-transform duration-500 ease-out will-change-transform ${
+          section === "live" ? "-translate-x-[100vw]" : "translate-x-0"
+        }`}
+      >
+        <div className="min-h-[200dvh] w-screen shrink-0 snap-y snap-mandatory">
+          {feedItems.map((item, index) => {
+            const videoSrc = item.videoUrl || item.trailerUrl;
+
+            return (
+              <article
+                key={item.id}
+                ref={(el) => { articleRefs.current[index] = el; }}
+                data-index={index}
+                className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black text-white"
+              >
+                {videoSrc ? (
+                  <video
+                    ref={(el) => { videoRefs.current[index] = el; }}
+                    src={videoSrc}
+                    poster={item.backdrop || item.poster}
+                    playsInline
+                    muted={muted}
+                    autoPlay={index === activeIndex}
+                    loop
+                    preload={index < 2 ? "auto" : "metadata"}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={item.backdrop || item.poster}
+                    alt={item.title}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/90" />
+
+                <div className="absolute inset-x-0 bottom-0 z-10 p-5 pb-8">
+                  <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                    <span>%{item.match} eşleşme</span>
+                    <span className="h-1 w-1 rounded-full bg-white/50" />
+                    <span>{item.type === "film" ? "Film" : "Dizi"}</span>
+                  </div>
+                  <h2 className="text-4xl font-black leading-none tracking-tight">{item.title}</h2>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-white/80">
+                    <span>{item.year}</span>
+                    <span className="rounded-full border border-white/25 px-2 py-1">{item.duration}</span>
+                    <span>{item.rating}</span>
+                  </div>
+                  <p className="mt-4 max-w-[18rem] text-sm leading-6 text-white/88 line-clamp-3">
+                    {item.description}
+                  </p>
+                </div>
+
+                <div className="absolute left-5 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2">
+                  {feedItems.map((dot) => (
+                    <span
+                      key={dot.id}
+                      className={`h-1.5 w-1.5 rounded-full transition ${dot.id === item.id ? "bg-white" : "bg-white/35"}`}
+                    />
+                  ))}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="relative h-[100dvh] w-screen shrink-0 overflow-hidden bg-black text-white">
           <img src={liveBackdrop} alt="" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-black/60" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
@@ -139,70 +211,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
             </p>
           </div>
         </div>
-      ) : (
-        <div className="min-h-[200dvh] snap-y snap-mandatory">
-        {feedItems.map((item, index) => {
-          const videoSrc = item.videoUrl || item.trailerUrl;
-
-          return (
-            <article
-              key={item.id}
-              ref={(el) => { articleRefs.current[index] = el; }}
-              data-index={index}
-              className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black text-white"
-            >
-              {videoSrc ? (
-                <video
-                  ref={(el) => { videoRefs.current[index] = el; }}
-                  src={videoSrc}
-                  poster={item.backdrop || item.poster}
-                  playsInline
-                  muted={muted}
-                  autoPlay={index === activeIndex}
-                  loop
-                  preload={index < 2 ? "auto" : "metadata"}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              ) : (
-                <img
-                  src={item.backdrop || item.poster}
-                  alt={item.title}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              )}
-
-              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/90" />
-
-            <div className="absolute inset-x-0 bottom-0 z-10 p-5 pb-8">
-              <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
-                <span>%{item.match} eşleşme</span>
-                <span className="h-1 w-1 rounded-full bg-white/50" />
-                <span>{item.type === "film" ? "Film" : "Dizi"}</span>
-              </div>
-              <h2 className="text-4xl font-black leading-none tracking-tight">{item.title}</h2>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-white/80">
-                <span>{item.year}</span>
-                <span className="rounded-full border border-white/25 px-2 py-1">{item.duration}</span>
-                <span>{item.rating}</span>
-              </div>
-              <p className="mt-4 max-w-[18rem] text-sm leading-6 text-white/88 line-clamp-3">
-                {item.description}
-              </p>
             </div>
-
-            <div className="absolute left-5 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2">
-              {feedItems.map((dot) => (
-                <span
-                  key={dot.id}
-                  className={`h-1.5 w-1.5 rounded-full transition ${dot.id === item.id ? "bg-white" : "bg-white/35"}`}
-                />
-              ))}
-            </div>
-          </article>
-            );
-        })}
-        </div>
-      )}
     </section>
   );
 }
