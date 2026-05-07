@@ -3,12 +3,13 @@ import { HeroSlider } from "@/components/streamtr/HeroSlider";
 import { ContentRow } from "@/components/streamtr/ContentRow";
 import { ReelsFeed } from "@/components/streamtr/ReelsFeed";
 import { useApp } from "@/contexts/AppContext";
-import { useAllTitles, useContentRows } from "@/hooks/useContent";
+import { useAllTitles, useContentRows, useFeaturedTitles } from "@/hooks/useContent";
 
 export default function Home() {
   const { continueWatching } = useApp();
   const { data: titles = [] } = useAllTitles();
   const { data: rows = [] } = useContentRows();
+  const { data: featured = [] } = useFeaturedTitles();
 
   const cwItems = useMemo(
     () => continueWatching.map((p) => titles.find((t) => t.id === p.id)).filter(Boolean) as typeof titles,
@@ -23,8 +24,8 @@ export default function Home() {
     <>
       <ReelsFeed items={titles} />
       <div className="hidden md:block">
-        <HeroSlider />
-        <div className="relative -mt-32 z-10 space-y-2">
+        <HeroSlider slides={featured} />
+        <div className={`relative z-10 space-y-2 ${featured.length ? "-mt-32" : "pt-24"}`}>
           {cwItems.length > 0 && (
             <ContentRow title="İzlemeye Devam Et" items={cwItems} progressMap={progressMap} />
           )}

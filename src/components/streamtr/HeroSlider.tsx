@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { Info, Play } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useFeaturedTitles } from "@/hooks/useContent";
+import type { Title } from "@/data/content";
 
-export function HeroSlider() {
-  const { data: slides = [] } = useFeaturedTitles();
+export function HeroSlider({ slides }: { slides: Title[] }) {
   const [i, setI] = useState(0);
 
   useEffect(() => {
@@ -15,7 +14,7 @@ export function HeroSlider() {
   }, [slides.length]);
 
   if (!slides.length) {
-    return <section className="relative h-[88vh] min-h-[560px] w-full bg-card animate-pulse" />;
+    return null;
   }
   const slide = slides[i % slides.length];
 
