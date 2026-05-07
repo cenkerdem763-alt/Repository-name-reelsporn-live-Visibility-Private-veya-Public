@@ -88,22 +88,16 @@ export default function Home() {
     <>
       <ReelsFeed items={titles} />
       <main className="hidden min-h-screen bg-background pb-20 lg:block">
-      <section className="border-b border-primary/20 bg-[linear-gradient(135deg,rgba(239,68,68,0.16),rgba(24,24,27,0.96)_42%,rgba(9,9,11,1))] px-4 pb-6 pt-24 shadow-[0_18px_60px_rgba(0,0,0,0.22)] md:px-8">
+      <section className="border-b border-teal-400/20 bg-[linear-gradient(135deg,rgba(20,184,166,0.18),rgba(15,23,42,0.96)_42%,rgba(5,9,12,1))] px-4 pb-5 pt-20 shadow-[0_18px_60px_rgba(0,0,0,0.24)] md:px-8">
         <div className="mx-auto max-w-[1480px]">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-primary/90">Keşfet</p>
-              <h1 className="mt-1 text-2xl font-black tracking-tight text-foreground md:text-3xl">Kategori vitrini</h1>
-            </div>
-          </div>
-          <nav className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <nav className="flex gap-2 overflow-x-auto pb-1 pt-1 scrollbar-hide">
             {categoryChips.map((chip, index) => (
               <button
                 key={chip}
                 className={`h-10 shrink-0 rounded-full border px-4 text-sm font-semibold transition ${
                   index === 0
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-white/10 bg-white/[0.08] text-foreground hover:border-primary/60 hover:bg-primary hover:text-primary-foreground"
+                    ? "border-teal-300 bg-teal-400 text-slate-950 shadow-[0_0_26px_rgba(45,212,191,0.24)]"
+                    : "border-white/10 bg-white/[0.08] text-slate-100 hover:border-teal-300/70 hover:bg-teal-400 hover:text-slate-950"
                 }`}
               >
                 {chip}
