@@ -61,8 +61,8 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     const verticalDelta = y - touchStartY.current;
     if (Math.abs(delta) < 120) return;
     if (Math.abs(delta) < Math.abs(verticalDelta) * 1.6) return;
-    if (delta < 0) changeSection("live");
-    if (delta > 0) changeSection("reels");
+    if (delta > 0) changeSection("live");
+    if (delta < 0) changeSection("reels");
   };
 
   const changeSection = (next: "reels" | "live") => {
