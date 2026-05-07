@@ -25,10 +25,7 @@ export function Navbar() {
       }`}
     >
       <div className="grid h-16 grid-cols-[auto_1fr_auto] items-center gap-4 px-4 md:px-10">
-        <Link to="/" className="group inline-flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-lg border border-primary/40 bg-primary text-xl font-black leading-none text-primary-foreground shadow-[0_0_22px_rgba(239,68,68,0.24)] transition group-hover:border-primary group-hover:bg-primary/90">
-            R
-          </span>
+        <Link to="/" className="inline-flex items-center">
           <span className="text-[1.55rem] font-black leading-none tracking-tight">
             <span className="text-primary">Reels</span>
             <span className="text-foreground">Porn</span>
