@@ -6,14 +6,6 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const links = [
-  { to: "/", label: "Ana Sayfa", end: true },
-  { to: "/diziler", label: "Diziler" },
-  { to: "/filmler", label: "Filmler" },
-  { to: "/yeni", label: "Yeni & Popüler" },
-  { to: "/listem", label: "Listem" },
-];
-
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const { user, profile, logout, setProfile } = useApp();
@@ -37,23 +29,6 @@ export function Navbar() {
           <PlayCircle className="h-7 w-7 fill-primary/20" />
           Reels<span className="text-foreground">Porn</span>
         </Link>
-
-        <nav className="hidden md:flex items-center gap-6">
-          {links.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end={l.end}
-              className={({ isActive }) =>
-                `text-sm transition-colors hover:text-foreground ${
-                  isActive ? "text-foreground font-semibold" : "text-muted-foreground"
-                }`
-              }
-            >
-              {l.label}
-            </NavLink>
-          ))}
-        </nav>
 
         <div className="ml-auto flex items-center gap-2 md:gap-4">
           <button
