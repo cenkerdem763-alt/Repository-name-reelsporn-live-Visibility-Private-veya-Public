@@ -17,10 +17,12 @@ export function ReelsFeed({ items }: { items: Title[] }) {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
+  const lastScrollY = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [section, setSection] = useState<MobileSection>("reels");
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [showHeader, setShowHeader] = useState(true);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
   const [muted, setMuted] = useState(true);
   const sourceItems = [...items, ...fallbackTitles].slice(0, 2);
@@ -35,6 +37,26 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     window.addEventListener("resize", updateViewport);
     return () => window.removeEventListener("resize", updateViewport);
   }, []);
+
+  useEffect(() => {
+    if (section !== "reels") {
+      setShowHeader(true);
+      return;
+    }
+
+    lastScrollY.current = window.scrollY;
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const delta = currentY - lastScrollY.current;
+
+      if (currentY < 12 || delta < -8) setShowHeader(true);
+      if (delta > 8 && currentY > 40) setShowHeader(false);
+      lastScrollY.current = currentY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [section]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -123,7 +145,11 @@ export function ReelsFeed({ items }: { items: Title[] }) {
         handleTouchEnd(event.changedTouches[0]?.clientX ?? 0, event.changedTouches[0]?.clientY ?? 0);
       }}
     >
-      <div className="fixed inset-x-0 top-0 z-30 bg-gradient-to-b from-black/80 via-black/35 to-transparent px-5 pb-5 pt-[max(0.9rem,env(safe-area-inset-top))]">
+      <div
+        className={`fixed inset-x-0 top-0 z-30 bg-gradient-to-b from-black/80 via-black/35 to-transparent px-5 pb-5 pt-[max(0.9rem,env(safe-area-inset-top))] transition-all duration-300 ease-out ${
+          showHeader ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+        }`}
+      >
         <div className="flex items-start justify-between">
           <div className="min-w-0">
             <div className="text-2xl font-black leading-none tracking-tight text-primary drop-shadow-[0_0_16px_rgba(239,68,68,0.45)]">
