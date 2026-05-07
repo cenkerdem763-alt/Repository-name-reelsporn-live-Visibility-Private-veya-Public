@@ -104,28 +104,42 @@ export default function Home() {
   const slotsToShow = Math.max(0, 24 - titles.length);
 
   return (
-    <main className="min-h-screen bg-background px-4 pb-20 pt-24 md:px-8">
-      <div className="mx-auto max-w-[1480px]">
-        <nav className="mb-5 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {categoryChips.map((chip) => (
-            <button
-              key={chip}
-              className="h-10 shrink-0 rounded-full border border-border bg-secondary px-4 text-sm font-semibold text-foreground hover:border-primary/60 hover:bg-primary hover:text-primary-foreground"
+    <main className="min-h-screen bg-background pb-20">
+      <section className="border-b border-primary/20 bg-[linear-gradient(135deg,rgba(239,68,68,0.16),rgba(24,24,27,0.96)_42%,rgba(9,9,11,1))] px-4 pb-6 pt-24 shadow-[0_18px_60px_rgba(0,0,0,0.22)] md:px-8">
+        <div className="mx-auto max-w-[1480px]">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-primary/90">Keşfet</p>
+              <h1 className="mt-1 text-2xl font-black tracking-tight text-foreground md:text-3xl">Kategori vitrini</h1>
+            </div>
+            <Link
+              to="/admin"
+              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground hover:bg-primary/90"
             >
-              {chip}
-            </button>
-          ))}
-        </nav>
+              <Plus className="h-4 w-4" />
+              Video Ekle
+            </Link>
+          </div>
+          <nav className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {categoryChips.map((chip, index) => (
+              <button
+                key={chip}
+                className={`h-10 shrink-0 rounded-full border px-4 text-sm font-semibold transition ${
+                  index === 0
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-white/10 bg-white/[0.08] text-foreground hover:border-primary/60 hover:bg-primary hover:text-primary-foreground"
+                }`}
+              >
+                {chip}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </section>
 
+      <div className="mx-auto max-w-[1480px] px-4 pt-6 md:px-8">
         <header className="mb-5 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
           <h1 className="text-xl font-black tracking-tight md:text-2xl">Popüler videolar</h1>
-        <Link
-          to="/admin"
-          className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          Video Ekle
-        </Link>
         </header>
 
         <section className="grid grid-cols-1 gap-x-3 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
