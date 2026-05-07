@@ -11,6 +11,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
   const articleRefs = useRef<(HTMLElement | null)[]>([]);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [section, setSection] = useState<"reels" | "live">("reels");
   const [muted, setMuted] = useState(true);
@@ -55,9 +56,11 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     });
   }, [activeIndex, muted, feedItems.length, section]);
 
-  const handleTouchEnd = (x: number) => {
+  const handleTouchEnd = (x: number, y: number) => {
     const delta = x - touchStartX.current;
-    if (Math.abs(delta) < 55) return;
+    const verticalDelta = y - touchStartY.current;
+    if (Math.abs(delta) < 120) return;
+    if (Math.abs(delta) < Math.abs(verticalDelta) * 1.6) return;
     if (delta < 0) setSection("live");
     if (delta > 0) setSection("reels");
   };
@@ -65,8 +68,13 @@ export function ReelsFeed({ items }: { items: Title[] }) {
   return (
     <section
       className="relative md:hidden bg-black"
-      onTouchStart={(event) => { touchStartX.current = event.touches[0]?.clientX ?? 0; }}
-      onTouchEnd={(event) => { handleTouchEnd(event.changedTouches[0]?.clientX ?? 0); }}
+      onTouchStart={(event) => {
+        touchStartX.current = event.touches[0]?.clientX ?? 0;
+        touchStartY.current = event.touches[0]?.clientY ?? 0;
+      }}
+      onTouchEnd={(event) => {
+        handleTouchEnd(event.changedTouches[0]?.clientX ?? 0, event.changedTouches[0]?.clientY ?? 0);
+      }}
     >
       <div className="fixed inset-x-0 top-0 z-30 bg-gradient-to-b from-black/75 via-black/35 to-transparent px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
         <div className="flex items-center justify-between">
