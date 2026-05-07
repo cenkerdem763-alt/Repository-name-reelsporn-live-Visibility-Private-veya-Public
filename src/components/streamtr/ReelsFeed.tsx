@@ -14,6 +14,9 @@ export function ReelsFeed({ items }: { items: Title[] }) {
   const touchStartY = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [section, setSection] = useState<"reels" | "live">("reels");
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
   const [muted, setMuted] = useState(true);
   const sourceItems = [...items, ...fallbackTitles].slice(0, 2);
   const feedItems = sourceItems.slice(0, 2).map((item, index) => ({
@@ -21,6 +24,12 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     videoUrl: demoVideos[index],
   }));
   const liveBackdrop = "/content/live-offstream-cover.png";
+
+  useEffect(() => {
+    const updateViewport = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -56,19 +65,41 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     });
   }, [activeIndex, muted, feedItems.length, section]);
 
+  const handleTouchMove = (x: number, y: number) => {
+    const delta = x - touchStartX.current;
+    const verticalDelta = y - touchStartY.current;
+    if (Math.abs(delta) < 12) return;
+    if (Math.abs(delta) < Math.abs(verticalDelta) * 1.25) return;
+
+    const nextDrag =
+      section === "reels"
+        ? Math.min(0, Math.max(-viewportWidth, delta))
+        : Math.max(0, Math.min(viewportWidth, delta));
+
+    setIsDragging(true);
+    setDragX(nextDrag);
+  };
+
   const handleTouchEnd = (x: number, y: number) => {
     const delta = x - touchStartX.current;
     const verticalDelta = y - touchStartY.current;
+    setIsDragging(false);
+    setDragX(0);
     if (Math.abs(delta) < 120) return;
     if (Math.abs(delta) < Math.abs(verticalDelta) * 1.6) return;
-    if (delta > 0) changeSection("live");
-    if (delta < 0) changeSection("reels");
+    if (section === "reels" && delta < 0) changeSection("live");
+    if (section === "live" && delta > 0) changeSection("reels");
   };
 
   const changeSection = (next: "reels" | "live") => {
     setSection(next);
+    setDragX(0);
+    setIsDragging(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const baseX = section === "live" ? -viewportWidth : 0;
+  const trackX = baseX + dragX;
 
   return (
     <section
@@ -76,6 +107,9 @@ export function ReelsFeed({ items }: { items: Title[] }) {
       onTouchStart={(event) => {
         touchStartX.current = event.touches[0]?.clientX ?? 0;
         touchStartY.current = event.touches[0]?.clientY ?? 0;
+      }}
+      onTouchMove={(event) => {
+        handleTouchMove(event.touches[0]?.clientX ?? 0, event.touches[0]?.clientY ?? 0);
       }}
       onTouchEnd={(event) => {
         handleTouchEnd(event.changedTouches[0]?.clientX ?? 0, event.changedTouches[0]?.clientY ?? 0);
@@ -131,9 +165,8 @@ export function ReelsFeed({ items }: { items: Title[] }) {
       </div>
 
       <div
-        className={`flex w-[200vw] transition-transform duration-500 ease-out will-change-transform ${
-          section === "live" ? "-translate-x-[100vw]" : "translate-x-0"
-        }`}
+        className={`flex w-[200vw] will-change-transform ${isDragging ? "" : "transition-transform duration-500 ease-out"}`}
+        style={{ transform: `translate3d(${trackX}px, 0, 0)` }}
       >
         <div className="min-h-[200dvh] w-screen shrink-0 snap-y snap-mandatory">
           {feedItems.map((item, index) => {
