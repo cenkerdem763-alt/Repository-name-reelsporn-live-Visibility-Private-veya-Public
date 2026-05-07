@@ -86,8 +86,13 @@ export function ReelsFeed({ items }: { items: Title[] }) {
 
             <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/90" />
             <div className="absolute inset-x-0 top-8 z-10 flex items-center justify-between px-5">
-              <div className="text-xl font-black tracking-tight text-primary">
-                Reels<span className="text-white">Porn</span>
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="shrink-0 text-xl font-black tracking-tight text-primary">
+                  Reels<span className="text-white">Porn</span>
+                </div>
+                <span className="truncate text-xs font-semibold text-white/80">
+                  İlk Reels Porno Sitesi
+                </span>
               </div>
               <button
                 type="button"
