@@ -4,6 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { fallbackTitles, type Title } from "@/data/content";
 
 const demoVideos = [
+  "/content/reels-1.mp4",
+  "/content/reels-2.mp4",
+];
+const fallbackDemoVideos = [
   "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
   "https://www.w3schools.com/html/mov_bbb.mp4",
 ];
@@ -28,7 +32,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
   const sourceItems = [...items, ...fallbackTitles].slice(0, 2);
   const feedItems = sourceItems.slice(0, 2).map((item, index) => ({
     ...item,
-    videoUrl: demoVideos[index],
+    videoUrl: demoVideos[index] || fallbackDemoVideos[index],
   }));
   const liveBackdrop = "/content/live-offstream-cover.png";
   const categoriesBackdrop = "/content/categories-cover.png";
@@ -244,6 +248,15 @@ export function ReelsFeed({ items }: { items: Title[] }) {
                     loop
                     preload={index < 2 ? "auto" : "metadata"}
                     className="absolute inset-0 h-full w-full object-cover"
+                    onError={(event) => {
+                      const fallback = fallbackDemoVideos[index];
+                      if (!fallback || event.currentTarget.src.includes(fallback)) return;
+                      event.currentTarget.src = fallback;
+                      event.currentTarget.load();
+                      if (section === "reels" && index === activeIndex) {
+                        event.currentTarget.play().catch(() => undefined);
+                      }
+                    }}
                   />
                 ) : (
                   <img
