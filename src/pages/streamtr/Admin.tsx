@@ -6,8 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { useApp } from "@/contexts/AppContext";
 import { useAllTitles } from "@/hooks/useContent";
+import { useApp } from "@/contexts/AppContext";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import type { Title } from "@/data/content";
@@ -49,18 +50,12 @@ export default function Admin() {
   const { user } = useApp();
   const qc = useQueryClient();
   const { data: items = [] } = useAllTitles();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const isAdmin = useIsAdmin();
   const [tab, setTab] = useState<"icerik" | "kullanici" | "kategori" | "istatistik">("icerik");
   const [editing, setEditing] = useState<Title | null>(null);
   const [open, setOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkSaving, setBulkSaving] = useState(false);
-
-  useEffect(() => {
-    if (!user) { setIsAdmin(false); return; }
-    supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
-      .then(({ data }) => setIsAdmin(!!data));
-  }, [user]);
 
   const stats = [
     { label: "Toplam İçerik", value: items.length, icon: Film },

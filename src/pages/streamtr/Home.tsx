@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { CheckCircle2, Eye, MoreVertical, Play, Plus } from "lucide-react";
 import { useAllTitles } from "@/hooks/useContent";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import type { Title } from "@/data/content";
 
 const categoryChips = ["Yeni", "Popüler", "HD", "Amatör", "Trend", "Türkçe", "Model", "Koleksiyon", "Öne Çıkan"];
@@ -101,7 +102,9 @@ function PlaceholderTile({ slot }: { slot: (typeof placeholderSlots)[number] }) 
 
 export default function Home() {
   const { data: titles = [] } = useAllTitles();
-  const slotsToShow = Math.max(0, 24 - titles.length);
+  const isAdmin = useIsAdmin();
+  const canManageContent = isAdmin === true;
+  const slotsToShow = canManageContent ? Math.max(0, 24 - titles.length) : 0;
 
   return (
     <main className="min-h-screen bg-background pb-20">
@@ -112,13 +115,15 @@ export default function Home() {
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-primary/90">Keşfet</p>
               <h1 className="mt-1 text-2xl font-black tracking-tight text-foreground md:text-3xl">Kategori vitrini</h1>
             </div>
-            <Link
-              to="/admin"
-              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground hover:bg-primary/90"
-            >
-              <Plus className="h-4 w-4" />
-              Video Ekle
-            </Link>
+            {canManageContent && (
+              <Link
+                to="/admin"
+                className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground hover:bg-primary/90"
+              >
+                <Plus className="h-4 w-4" />
+                Video Ekle
+              </Link>
+            )}
           </div>
           <nav className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {categoryChips.map((chip, index) => (
@@ -146,7 +151,7 @@ export default function Home() {
           {titles.map((item) => (
             <VideoTile key={item.id} item={item} />
           ))}
-          {placeholderSlots.slice(0, slotsToShow).map((slot) => (
+          {canManageContent && placeholderSlots.slice(0, slotsToShow).map((slot) => (
             <PlaceholderTile key={slot.title} slot={slot} />
           ))}
         </section>
