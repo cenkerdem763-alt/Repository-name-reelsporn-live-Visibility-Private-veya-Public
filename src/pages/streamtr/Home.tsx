@@ -130,7 +130,7 @@ export default function Home() {
               type="button"
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className="h-12 rounded-md bg-secondary px-6 text-sm font-bold text-foreground transition hover:bg-secondary/80 disabled:cursor-not-allowed disabled:opacity-35"
+              className="h-12 rounded-md bg-zinc-900 px-6 text-sm font-bold text-zinc-300 transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:text-zinc-600 disabled:opacity-60"
             >
               Prev
             </button>
@@ -146,8 +146,8 @@ export default function Home() {
                     onClick={() => goToPage(page)}
                     className={`h-12 min-w-12 rounded-md px-4 text-sm font-black transition ${
                       page === currentPage
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-foreground hover:bg-secondary/80"
+                        ? "bg-primary text-primary-foreground shadow-[0_0_24px_rgba(239,68,68,0.28)]"
+                        : "bg-zinc-900 text-zinc-200 hover:bg-primary hover:text-primary-foreground"
                     }`}
                     aria-current={page === currentPage ? "page" : undefined}
                   >
@@ -160,7 +160,7 @@ export default function Home() {
               type="button"
               onClick={() => goToPage(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="h-12 rounded-md bg-primary px-6 text-sm font-bold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-secondary disabled:text-foreground disabled:opacity-35"
+              className="h-12 rounded-md bg-primary px-6 text-sm font-bold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600 disabled:opacity-60"
             >
               Next
             </button>
