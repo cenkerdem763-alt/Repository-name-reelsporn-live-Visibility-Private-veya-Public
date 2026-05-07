@@ -12,7 +12,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
-  const sourceItems = items.length ? items : fallbackTitles;
+  const sourceItems = [...items, ...fallbackTitles].slice(0, 2);
   const feedItems = sourceItems.slice(0, 2).map((item, index) => ({
     ...item,
     videoUrl: demoVideos[index],
@@ -53,7 +53,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
   }, [activeIndex, muted, feedItems.length]);
 
   return (
-    <section className="md:hidden h-[100dvh] overflow-y-auto snap-y snap-mandatory overscroll-contain scroll-smooth bg-black scrollbar-hide">
+    <section className="md:hidden min-h-[200dvh] snap-y snap-mandatory bg-black">
       {feedItems.map((item, index) => {
         const videoSrc = item.videoUrl || item.trailerUrl;
 
