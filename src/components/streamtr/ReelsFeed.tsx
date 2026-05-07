@@ -53,39 +53,9 @@ export function ReelsFeed({ items }: { items: Title[] }) {
   }, [activeIndex, muted, feedItems.length]);
 
   return (
-    <section className="md:hidden min-h-[200dvh] snap-y snap-mandatory bg-black">
-      {feedItems.map((item, index) => {
-        const videoSrc = item.videoUrl || item.trailerUrl;
-
-        return (
-          <article
-            key={item.id}
-            ref={(el) => { articleRefs.current[index] = el; }}
-            data-index={index}
-            className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black text-white"
-          >
-            {videoSrc ? (
-              <video
-                ref={(el) => { videoRefs.current[index] = el; }}
-                src={videoSrc}
-                poster={item.backdrop || item.poster}
-                playsInline
-                muted={muted}
-                autoPlay={index === activeIndex}
-                loop
-                preload={index < 2 ? "auto" : "metadata"}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            ) : (
-              <img
-                src={item.backdrop || item.poster}
-                alt={item.title}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            )}
-
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/90" />
-            <div className="absolute inset-x-0 top-8 z-10 flex items-center justify-between px-5">
+    <section className="relative md:hidden bg-black">
+      <div className="fixed inset-x-0 top-0 z-30 bg-gradient-to-b from-black/75 via-black/35 to-transparent px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
+        <div className="flex items-center justify-between">
               <div className="flex min-w-0 items-center gap-2">
                 <div className="shrink-0 text-xl font-black tracking-tight text-primary">
                   Reels<span className="text-white">Porn</span>
@@ -104,7 +74,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
               </button>
             </div>
 
-            <div className="absolute inset-x-0 top-20 z-10 grid grid-cols-3 items-center px-5 text-sm font-bold text-white">
+        <div className="mt-5 grid grid-cols-3 items-center text-sm font-bold text-white">
               <button type="button" className="justify-self-start text-white/80">
                 Canlı Yayın
               </button>
@@ -114,6 +84,40 @@ export function ReelsFeed({ items }: { items: Title[] }) {
               </button>
               <span aria-hidden="true" />
             </div>
+      </div>
+
+      <div className="min-h-[200dvh] snap-y snap-mandatory">
+        {feedItems.map((item, index) => {
+          const videoSrc = item.videoUrl || item.trailerUrl;
+
+          return (
+            <article
+              key={item.id}
+              ref={(el) => { articleRefs.current[index] = el; }}
+              data-index={index}
+              className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black text-white"
+            >
+              {videoSrc ? (
+                <video
+                  ref={(el) => { videoRefs.current[index] = el; }}
+                  src={videoSrc}
+                  poster={item.backdrop || item.poster}
+                  playsInline
+                  muted={muted}
+                  autoPlay={index === activeIndex}
+                  loop
+                  preload={index < 2 ? "auto" : "metadata"}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <img
+                  src={item.backdrop || item.poster}
+                  alt={item.title}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              )}
+
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/90" />
 
             <div className="absolute inset-x-0 bottom-0 z-10 p-5 pb-8">
               <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
@@ -141,8 +145,9 @@ export function ReelsFeed({ items }: { items: Title[] }) {
               ))}
             </div>
           </article>
-        );
-      })}
+          );
+        })}
+      </div>
     </section>
   );
 }
