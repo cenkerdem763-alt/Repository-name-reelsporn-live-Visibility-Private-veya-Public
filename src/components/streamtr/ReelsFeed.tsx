@@ -85,7 +85,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
             )}
 
             <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/90" />
-            <div className="absolute inset-x-0 top-14 z-10 flex items-center justify-between px-5">
+            <div className="absolute inset-x-0 top-8 z-10 flex items-center justify-between px-5">
               <div className="text-xl font-black tracking-tight text-primary">
                 Reels<span className="text-white">Porn</span>
               </div>
@@ -99,7 +99,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
               </button>
             </div>
 
-            <div className="absolute inset-x-0 top-24 z-10 grid grid-cols-3 items-center px-5 text-sm font-bold text-white">
+            <div className="absolute inset-x-0 top-20 z-10 grid grid-cols-3 items-center px-5 text-sm font-bold text-white">
               <button type="button" className="justify-self-start text-white/80">
                 Canlı Yayın
               </button>
