@@ -19,7 +19,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     ...item,
     videoUrl: demoVideos[index],
   }));
-  const liveBackdrop = feedItems[0]?.backdrop || fallbackTitles[0].backdrop;
+  const liveBackdrop = "/content/live-offstream-cover.png";
 
   useEffect(() => {
     const observer = new IntersectionObserver(
