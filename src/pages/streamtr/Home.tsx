@@ -88,7 +88,7 @@ export default function Home() {
     <>
       <ReelsFeed items={titles} />
       <main className="hidden min-h-screen bg-background pb-20 lg:block">
-      <section className="border-b border-teal-400/20 bg-[linear-gradient(135deg,rgba(20,184,166,0.18),rgba(15,23,42,0.96)_42%,rgba(5,9,12,1))] px-4 pb-5 pt-20 shadow-[0_18px_60px_rgba(0,0,0,0.24)] md:px-8">
+      <section className="border-b border-sky-400/20 bg-[linear-gradient(135deg,rgba(56,189,248,0.18),rgba(30,41,59,0.96)_42%,rgba(5,9,16,1))] px-4 pb-5 pt-20 shadow-[0_18px_60px_rgba(0,0,0,0.24)] md:px-8">
         <div className="mx-auto max-w-[1480px]">
           <nav className="flex gap-2 overflow-x-auto pb-1 pt-1 scrollbar-hide">
             {categoryChips.map((chip, index) => (
@@ -96,8 +96,8 @@ export default function Home() {
                 key={chip}
                 className={`h-10 shrink-0 rounded-full border px-4 text-sm font-semibold transition ${
                   index === 0
-                    ? "border-teal-300 bg-teal-400 text-slate-950 shadow-[0_0_26px_rgba(45,212,191,0.24)]"
-                    : "border-white/10 bg-white/[0.08] text-slate-100 hover:border-teal-300/70 hover:bg-teal-400 hover:text-slate-950"
+                    ? "border-sky-300 bg-sky-400 text-slate-950 shadow-[0_0_26px_rgba(56,189,248,0.26)]"
+                    : "border-white/10 bg-white/[0.08] text-slate-100 hover:border-sky-300/70 hover:bg-sky-400 hover:text-slate-950"
                 }`}
               >
                 {chip}
