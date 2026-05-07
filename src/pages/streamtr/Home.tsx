@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Eye, MoreVertical, Play, Plus } from "lucide-react";
+import { ReelsFeed } from "@/components/streamtr/ReelsFeed";
 import { useAllTitles } from "@/hooks/useContent";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import type { Title } from "@/data/content";
@@ -129,7 +130,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-background pb-20">
+    <>
+      <ReelsFeed items={titles} />
+      <main className="hidden min-h-screen bg-background pb-20 md:block">
       <section className="border-b border-primary/20 bg-[linear-gradient(135deg,rgba(239,68,68,0.16),rgba(24,24,27,0.96)_42%,rgba(9,9,11,1))] px-4 pb-6 pt-24 shadow-[0_18px_60px_rgba(0,0,0,0.22)] md:px-8">
         <div className="mx-auto max-w-[1480px]">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -221,6 +224,7 @@ export default function Home() {
           </nav>
         )}
       </div>
-    </main>
+      </main>
+    </>
   );
 }
