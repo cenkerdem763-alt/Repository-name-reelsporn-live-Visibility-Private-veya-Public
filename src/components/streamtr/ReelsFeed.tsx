@@ -73,8 +73,8 @@ export function ReelsFeed({ items }: { items: Title[] }) {
 
     const nextDrag =
       section === "reels"
-        ? Math.min(0, Math.max(-viewportWidth, delta))
-        : Math.max(0, Math.min(viewportWidth, delta));
+        ? Math.max(0, Math.min(viewportWidth, delta))
+        : Math.min(0, Math.max(-viewportWidth, delta));
 
     setIsDragging(true);
     setDragX(nextDrag);
@@ -87,8 +87,8 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     setDragX(0);
     if (Math.abs(delta) < 120) return;
     if (Math.abs(delta) < Math.abs(verticalDelta) * 1.6) return;
-    if (section === "reels" && delta < 0) changeSection("live");
-    if (section === "live" && delta > 0) changeSection("reels");
+    if (section === "reels" && delta > 0) changeSection("live");
+    if (section === "live" && delta < 0) changeSection("reels");
   };
 
   const changeSection = (next: "reels" | "live") => {
@@ -98,7 +98,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const baseX = section === "live" ? -viewportWidth : 0;
+  const baseX = section === "live" ? 0 : -viewportWidth;
   const trackX = baseX + dragX;
 
   return (
@@ -168,6 +168,20 @@ export function ReelsFeed({ items }: { items: Title[] }) {
         className={`flex w-[200vw] will-change-transform ${isDragging ? "" : "transition-transform duration-500 ease-out"}`}
         style={{ transform: `translate3d(${trackX}px, 0, 0)` }}
       >
+        <div className="relative h-[100dvh] w-screen shrink-0 overflow-hidden bg-black text-white">
+          <img src={liveBackdrop} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
+          <div className="relative z-10 flex h-full flex-col items-center justify-center px-8 text-center">
+            <h2 className="text-4xl font-black leading-tight text-rose-100 drop-shadow-[0_0_24px_rgba(244,63,94,0.55)]">
+              Off Stream
+            </h2>
+            <p className="mt-4 max-w-xs text-sm leading-6 text-white/75">
+              Yeni yayın başladığında burada görünecek.
+            </p>
+          </div>
+        </div>
+
         <div className="min-h-[200dvh] w-screen shrink-0 snap-y snap-mandatory">
           {feedItems.map((item, index) => {
             const videoSrc = item.videoUrl || item.trailerUrl;
@@ -230,21 +244,7 @@ export function ReelsFeed({ items }: { items: Title[] }) {
             );
           })}
         </div>
-
-        <div className="relative h-[100dvh] w-screen shrink-0 overflow-hidden bg-black text-white">
-          <img src={liveBackdrop} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-black/60" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
-          <div className="relative z-10 flex h-full flex-col items-center justify-center px-8 text-center">
-            <h2 className="text-4xl font-black leading-tight text-rose-100 drop-shadow-[0_0_24px_rgba(244,63,94,0.55)]">
-              Off Stream
-            </h2>
-            <p className="mt-4 max-w-xs text-sm leading-6 text-white/75">
-              Yeni yayın başladığında burada görünecek.
-            </p>
-          </div>
-        </div>
-            </div>
+      </div>
     </section>
   );
 }
