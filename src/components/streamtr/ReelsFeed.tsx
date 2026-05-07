@@ -58,8 +58,8 @@ export function ReelsFeed({ items }: { items: Title[] }) {
   const handleTouchEnd = (x: number) => {
     const delta = x - touchStartX.current;
     if (Math.abs(delta) < 55) return;
-    if (delta < 0) setSection("live");
-    if (delta > 0) setSection("reels");
+    if (delta > 0) setSection("live");
+    if (delta < 0) setSection("reels");
   };
 
   return (
