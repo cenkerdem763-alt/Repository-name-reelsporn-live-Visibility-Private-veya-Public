@@ -13,9 +13,26 @@ function metricFromId(id: string) {
   return `${Math.max(12, total % 980)}K`;
 }
 
+function getEmbedSrc(value: string) {
+  return value.match(/<iframe[^>]+src=["']([^"']+)["']/i)?.[1] || value;
+}
+
+function isEmbedSource(value: string) {
+  const source = value.trim();
+  if (source.startsWith("<iframe")) return true;
+  if (source.includes("/embed/")) return true;
+  return !/\.(mp4|webm|ogg|m3u8)(\?|#|$)/i.test(source);
+}
+
+function withPreviewParams(value: string) {
+  const separator = value.includes("?") ? "&" : "?";
+  return `${value}${separator}autoplay=1&mute=1&muted=1`;
+}
+
 function PreviewClip({ item, active }: { item: Title; active: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewStart = item.previewStart || 0;
+  const embedPreview = !item.previewUrl && item.videoUrl && isEmbedSource(item.videoUrl);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -29,6 +46,19 @@ function PreviewClip({ item, active }: { item: Title; active: boolean }) {
       video.currentTime = previewStart;
     }
   }, [active, previewStart]);
+
+  if (embedPreview) {
+    return active ? (
+      <iframe
+        src={withPreviewParams(getEmbedSrc(item.videoUrl!))}
+        title={`${item.title} önizleme`}
+        className="pointer-events-none absolute inset-0 h-full w-full border-0"
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+        referrerPolicy="no-referrer-when-downgrade"
+        aria-hidden="true"
+      />
+    ) : null;
+  }
 
   if (!item.previewUrl) return null;
 
@@ -52,6 +82,7 @@ function PreviewClip({ item, active }: { item: Title; active: boolean }) {
 
 function VideoTile({ item }: { item: Title }) {
   const image = item.backdrop || item.poster || "/placeholder.svg";
+  const hasImage = image !== "/placeholder.svg";
   const [previewing, setPreviewing] = useState(false);
 
   return (
@@ -64,12 +95,16 @@ function VideoTile({ item }: { item: Title }) {
     >
       <Link to={`/icerik/${item.id}`} className="block">
         <div className="relative aspect-video overflow-hidden bg-secondary">
-          <img
-            src={image}
-            alt={item.title}
-            loading="lazy"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-          />
+          {hasImage ? (
+            <img
+              src={image}
+              alt={item.title}
+              loading="lazy"
+              className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(239,68,68,0.18),rgba(24,24,27,0.92)_58%,rgba(0,0,0,1))]" />
+          )}
           <PreviewClip item={item} active={previewing} />
           <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/20" />
           <div className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-semibold text-white">
