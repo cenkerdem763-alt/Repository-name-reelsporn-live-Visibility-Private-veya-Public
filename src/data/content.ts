@@ -15,10 +15,33 @@ export type Title = {
   type: "film" | "dizi";
   trailerUrl?: string;
   videoUrl?: string;
+  previewUrl?: string;
+  previewStart?: number;
   featured?: boolean;
 };
 
 export type Row = { title: string; items: Title[] };
+
+type JsonVideo = {
+  id?: string;
+  title?: string;
+  category?: string;
+  categories?: string[];
+  thumbnail?: string;
+  poster?: string;
+  backdrop?: string;
+  duration?: string;
+  rating?: string;
+  year?: number;
+  description?: string;
+  embedUrl?: string;
+  videoUrl?: string;
+  trailerUrl?: string;
+  previewUrl?: string;
+  previewStart?: number;
+  featured?: boolean;
+  type?: "film" | "dizi";
+};
 
 export const sampleVideoUrl = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 
@@ -163,4 +186,69 @@ export function mapTitle(r: Tables<"titles">): Title {
     videoUrl: r.video_url ?? undefined,
     featured: r.featured,
   };
+}
+
+function slugify(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function mapJsonVideo(video: JsonVideo, index: number): Title | null {
+  const title = video.title?.trim();
+  const source = video.embedUrl || video.videoUrl || video.trailerUrl;
+  if (!title || !source) return null;
+
+  const genres = video.categories?.length ? video.categories : [video.category || "Video"];
+  const poster = video.poster || video.thumbnail || "/placeholder.svg";
+  const backdrop = video.backdrop || video.thumbnail || poster;
+
+  return {
+    id: video.id || slugify(title) || `video-${index + 1}`,
+    title,
+    poster,
+    backdrop,
+    year: video.year || new Date().getFullYear(),
+    duration: video.duration || "Video",
+    rating: video.rating || "18+",
+    genres,
+    description: video.description || genres.join(", "),
+    match: 95,
+    type: video.type || "film",
+    videoUrl: source,
+    previewUrl: video.previewUrl || (/\.(mp4|webm|ogg)(\?|#|$)/i.test(source) ? source : undefined),
+    previewStart: video.previewStart || 0,
+    featured: video.featured ?? index < 6,
+  };
+}
+
+export async function fetchJsonTitles(): Promise<Title[]> {
+  const response = await fetch("/videos.json", { cache: "no-cache" });
+  if (!response.ok) return fallbackTitles;
+
+  const data = await response.json();
+  if (!Array.isArray(data)) return fallbackTitles;
+
+  const titles = data
+    .map((video, index) => mapJsonVideo(video, index))
+    .filter((video): video is Title => Boolean(video));
+
+  return titles.length ? titles : fallbackTitles;
+}
+
+export function buildRowsFromTitles(titles: Title[]): Row[] {
+  const genres = [...new Set(titles.flatMap((title) => title.genres).filter(Boolean))].slice(0, 4);
+  const genreRows = genres.map((genre) => ({
+    title: genre,
+    items: titles.filter((title) => title.genres.includes(genre)),
+  }));
+
+  return [
+    { title: "Bugün Öne Çıkanlar", items: titles.filter((title) => title.featured).slice(0, 12) || titles.slice(0, 12) },
+    ...genreRows,
+  ].filter((row) => row.items.length);
 }

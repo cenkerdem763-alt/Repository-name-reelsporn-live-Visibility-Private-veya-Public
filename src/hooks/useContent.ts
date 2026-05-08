@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { fallbackRows, fallbackTitles, mapTitle, type Title, type Row } from "@/data/content";
+import { buildRowsFromTitles, fallbackRows, fallbackTitles, fetchJsonTitles, mapTitle, type Title, type Row } from "@/data/content";
 import {
   buildWordPressRows,
   fetchWordPressTitle,
@@ -9,11 +9,16 @@ import {
 } from "@/integrations/wordpress/client";
 
 const hasSupabaseConfig = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+const useLocalJson = import.meta.env.VITE_CONTENT_SOURCE !== "supabase" && !hasWordPressConfig;
 
 export function useAllTitles() {
   return useQuery({
     queryKey: ["titles", hasWordPressConfig ? "wordpress" : "supabase"],
     queryFn: async (): Promise<Title[]> => {
+      if (useLocalJson) {
+        return fetchJsonTitles();
+      }
+
       if (hasWordPressConfig) {
         return fetchWordPressTitles();
       }
@@ -34,6 +39,11 @@ export function useTitle(id: string | undefined) {
     queryKey: ["title", hasWordPressConfig ? "wordpress" : "supabase", id],
     enabled: !!id,
     queryFn: async (): Promise<Title | null> => {
+      if (useLocalJson) {
+        const titles = await fetchJsonTitles();
+        return titles.find((title) => title.id === id) ?? null;
+      }
+
       if (hasWordPressConfig) {
         return fetchWordPressTitle(id!);
       }
@@ -52,6 +62,11 @@ export function useFeaturedTitles() {
   return useQuery({
     queryKey: ["featured-titles", hasWordPressConfig ? "wordpress" : "supabase"],
     queryFn: async (): Promise<Title[]> => {
+      if (useLocalJson) {
+        const titles = await fetchJsonTitles();
+        return titles.filter((title) => title.featured);
+      }
+
       if (hasWordPressConfig) {
         const titles = await fetchWordPressTitles();
         return titles.filter((title) => title.featured);
@@ -72,6 +87,11 @@ export function useContentRows() {
   return useQuery({
     queryKey: ["content-rows", hasWordPressConfig ? "wordpress" : "supabase"],
     queryFn: async (): Promise<Row[]> => {
+      if (useLocalJson) {
+        const titles = await fetchJsonTitles();
+        return buildRowsFromTitles(titles);
+      }
+
       if (hasWordPressConfig) {
         const titles = await fetchWordPressTitles();
         return buildWordPressRows(titles);

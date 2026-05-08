@@ -1,0 +1,31 @@
+[
+  {
+    "id": "ornek-embed-1",
+    "title": "Ornek embed video 1",
+    "category": "Yeni",
+    "thumbnail": "/content/hero-1.jpg",
+    "poster": "/content/poster-1.jpg",
+    "duration": "12:00",
+    "rating": "18+",
+    "year": 2026,
+    "description": "Bu alana video aciklamasi yazilir.",
+    "embedUrl": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    "previewUrl": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    "previewStart": 1,
+    "featured": true
+  },
+  {
+    "id": "ornek-embed-2",
+    "title": "Ornek embed video 2",
+    "category": "Populer",
+    "thumbnail": "/content/hero-2.jpg",
+    "poster": "/content/poster-2.jpg",
+    "duration": "15:30",
+    "rating": "18+",
+    "year": 2026,
+    "description": "Yeni video eklemek icin bu objeyi kopyalayip bilgileri degistirebilirsin.",
+    "embedUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+    "previewUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+    "previewStart": 4
+  }
+]

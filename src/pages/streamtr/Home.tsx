@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Eye, MoreVertical, Play } from "lucide-react";
 import { ReelsFeed } from "@/components/streamtr/ReelsFeed";
@@ -12,11 +13,55 @@ function metricFromId(id: string) {
   return `${Math.max(12, total % 980)}K`;
 }
 
-function VideoTile({ item }: { item: Title }) {
-  const image = item.backdrop || item.poster || "/placeholder.svg";
+function PreviewClip({ item, active }: { item: Title; active: boolean }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const previewStart = item.previewStart || 0;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (active) {
+      video.currentTime = previewStart;
+      video.play().catch(() => undefined);
+    } else {
+      video.pause();
+      video.currentTime = previewStart;
+    }
+  }, [active, previewStart]);
+
+  if (!item.previewUrl) return null;
 
   return (
-    <article className="group min-w-0 overflow-hidden">
+    <video
+      ref={videoRef}
+      src={item.previewUrl}
+      muted
+      playsInline
+      preload="metadata"
+      onTimeUpdate={(event) => {
+        if (event.currentTarget.currentTime >= previewStart + 5) {
+          event.currentTarget.currentTime = previewStart;
+        }
+      }}
+      className={`absolute inset-0 h-full w-full object-cover transition duration-200 ${active ? "opacity-100" : "opacity-0"}`}
+      aria-hidden="true"
+    />
+  );
+}
+
+function VideoTile({ item }: { item: Title }) {
+  const image = item.backdrop || item.poster || "/placeholder.svg";
+  const [previewing, setPreviewing] = useState(false);
+
+  return (
+    <article
+      className="group min-w-0 overflow-hidden"
+      onMouseEnter={() => setPreviewing(true)}
+      onMouseLeave={() => setPreviewing(false)}
+      onFocus={() => setPreviewing(true)}
+      onBlur={() => setPreviewing(false)}
+    >
       <Link to={`/icerik/${item.id}`} className="block">
         <div className="relative aspect-video overflow-hidden bg-secondary">
           <img
@@ -25,6 +70,7 @@ function VideoTile({ item }: { item: Title }) {
             loading="lazy"
             className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
           />
+          <PreviewClip item={item} active={previewing} />
           <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/20" />
           <div className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-semibold text-white">
             {item.duration || "12:00"}
