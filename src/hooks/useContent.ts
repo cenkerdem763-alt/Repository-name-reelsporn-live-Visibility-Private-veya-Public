@@ -9,7 +9,7 @@ import {
 } from "@/integrations/wordpress/client";
 
 const hasSupabaseConfig = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
-const useLocalJson = import.meta.env.VITE_CONTENT_SOURCE !== "supabase" && !hasWordPressConfig;
+const useLocalJson = import.meta.env.VITE_CONTENT_SOURCE === "json" || (!hasSupabaseConfig && !hasWordPressConfig);
 
 export function useAllTitles() {
   return useQuery({
