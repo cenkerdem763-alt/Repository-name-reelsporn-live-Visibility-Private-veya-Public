@@ -22,6 +22,10 @@ export type Title = {
 
 export type Row = { title: string; items: Title[] };
 
+function isDirectPreviewVideo(value: string | null | undefined) {
+  return /\.(mp4|webm|ogg)(\?|#|$)/i.test(value || "");
+}
+
 type JsonVideo = {
   id?: string;
   title?: string;
@@ -184,6 +188,8 @@ export function mapTitle(r: Tables<"titles">): Title {
     type: (r.type as "film" | "dizi"),
     trailerUrl: r.trailer_url ?? undefined,
     videoUrl: r.video_url ?? undefined,
+    previewUrl: isDirectPreviewVideo(r.trailer_url) && r.trailer_url !== r.video_url ? r.trailer_url ?? undefined : undefined,
+    previewStart: 0,
     featured: r.featured,
   };
 }
@@ -220,7 +226,7 @@ function mapJsonVideo(video: JsonVideo, index: number): Title | null {
     match: 95,
     type: video.type || "film",
     videoUrl: source,
-    previewUrl: video.previewUrl || (/\.(mp4|webm|ogg)(\?|#|$)/i.test(source) ? source : undefined),
+    previewUrl: video.previewUrl || (isDirectPreviewVideo(source) ? source : undefined),
     previewStart: video.previewStart || 0,
     featured: video.featured ?? index < 6,
   };

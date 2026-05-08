@@ -37,6 +37,7 @@ type BulkEntry = {
   title?: string;
   poster?: string;
   genres?: string[];
+  preview?: string;
 };
 
 function getHostLabel(value: string) {
@@ -64,6 +65,7 @@ function parseBulkLines(value: string) {
           title: parts[0],
           poster: parts[2],
           genres: parts[3]?.split(",").map((genre) => genre.trim()).filter(Boolean),
+          preview: parts[4],
         };
       }
 
@@ -112,7 +114,7 @@ export default function Admin() {
       poster_url: String(form.get("poster_url") || editing?.poster || ""),
       backdrop_url: String(form.get("backdrop_url") || editing?.backdrop || ""),
       video_url: String(form.get("video_url") || editing?.videoUrl || ""),
-      trailer_url: String(form.get("video_url") || editing?.videoUrl || ""),
+      trailer_url: String(form.get("preview_url") || editing?.previewUrl || form.get("video_url") || editing?.videoUrl || ""),
       featured: form.get("featured") === "on",
       match_score: editing?.match ?? 90,
     };
@@ -149,6 +151,7 @@ export default function Admin() {
       .filter(Boolean);
     const defaultPoster = String(form.get("poster_url") || "").trim();
     const defaultBackdrop = String(form.get("backdrop_url") || defaultPoster).trim();
+    const defaultPreview = String(form.get("preview_url") || "").trim();
     const now = Date.now().toString(36);
 
     const payloads = newEntries.map((entry, index) => {
@@ -172,7 +175,7 @@ export default function Admin() {
         poster_url: poster,
         backdrop_url: defaultBackdrop || poster,
         video_url: entry.raw,
-        trailer_url: entry.raw,
+        trailer_url: entry.preview || defaultPreview || entry.raw,
         featured: form.get("featured") === "on",
         match_score: 90,
       };
@@ -289,7 +292,7 @@ ON CONFLICT DO NOTHING;`}
               <form onSubmit={(e) => { e.preventDefault(); bulkSave(new FormData(e.currentTarget)); }} className="space-y-3">
                 <Textarea
                   name="embed_lines"
-                  placeholder={'Her satıra bir embed URL veya iframe kodu yapıştır.\nhttps://site.test/embed/123\nBaşlık | https://site.test/embed/456 | https://site.test/poster.jpg | Kategori'}
+                  placeholder={'Her satıra bir embed URL veya iframe kodu yapıştır.\nhttps://site.test/embed/123\nBaşlık | https://site.test/embed/456 | https://site.test/poster.jpg | Kategori | https://site.test/preview.mp4'}
                   rows={9}
                   required
                 />
@@ -311,6 +314,7 @@ ON CONFLICT DO NOTHING;`}
                 <Textarea name="description" placeholder="Ortak açıklama" rows={2} />
                 <Input name="poster_url" placeholder="Ortak poster URL" />
                 <Input name="backdrop_url" placeholder="Ortak arka plan URL" />
+                <Input name="preview_url" placeholder="Ortak 5 sn önizleme MP4 URL" />
                 <label className="flex items-center gap-3">
                   <Switch name="featured" />
                   <span className="text-sm">Ana sayfa hero slider'da göster</span>
@@ -352,6 +356,7 @@ ON CONFLICT DO NOTHING;`}
                   placeholder='Video URL, embed URL veya iframe kodu. Örn: /videos/ornek.mp4 ya da <iframe src="..."></iframe>'
                   rows={3}
                 />
+                <Input name="preview_url" defaultValue={editing?.previewUrl} placeholder="Önizleme MP4 URL (hover için)" />
                 <label className="flex items-center gap-3">
                   <Switch name="featured" defaultChecked={editing?.featured} />
                   <span className="text-sm">Ana sayfa hero slider'da göster</span>
