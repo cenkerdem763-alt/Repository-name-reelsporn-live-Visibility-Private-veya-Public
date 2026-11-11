@@ -174,7 +174,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return {};
 };
-  };
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
