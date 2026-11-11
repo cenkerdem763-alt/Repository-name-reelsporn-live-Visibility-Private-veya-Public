@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown, LogIn, LogOut, Search, User } from "lucide-react";
+import { ChevronDown, LogOut, Play, Search, UserCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useApp } from "@/contexts/AppContext";
 import {
@@ -8,7 +8,7 @@ import {
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const { user, profile, logout, setProfile } = useApp();
+  const { user, profile, logout } = useApp();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,25 +21,28 @@ export function Navbar() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-background/95 backdrop-blur-md shadow-lg" : "bg-gradient-to-b from-background/90 to-transparent"
+        scrolled ? "border-b border-primary/20 bg-black/90 shadow-[0_14px_44px_rgba(0,0,0,0.42)] backdrop-blur-xl" : "bg-gradient-to-b from-black/95 via-black/70 to-transparent"
       }`}
     >
       <div className="grid h-16 grid-cols-[auto_1fr_auto] items-center gap-4 px-4 md:px-10">
-        <Link to="/" className="inline-flex items-center">
-          <span className="text-[1.55rem] font-black leading-none tracking-tight">
-            <span className="text-primary">Reels</span>
-            <span className="text-foreground">Porn</span>
+        <Link to="/" className="inline-flex items-center gap-2">
+          <span className="grid h-8 w-8 place-items-center rounded-md border border-primary/30 bg-primary text-white shadow-[0_12px_30px_rgba(255,23,77,0.24)]">
+            <Play className="h-4 w-4 fill-current" />
+          </span>
+          <span className="text-[1.45rem] font-black leading-none tracking-tight">
+            <span className="text-foreground">Reels</span>
+            <span className="text-primary">Porn</span>
           </span>
         </Link>
 
         <div className="flex justify-center">
           <button
             onClick={() => navigate("/ara")}
-            className="flex h-10 w-full max-w-[520px] items-center gap-3 rounded-full border border-border bg-secondary/80 px-4 text-left text-sm text-muted-foreground transition hover:border-primary/50 hover:bg-secondary hover:text-foreground"
+            className="flex h-10 w-full max-w-[540px] items-center gap-3 rounded-md border border-primary/20 bg-black/60 px-4 text-left text-sm text-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_34px_rgba(0,0,0,0.25)] backdrop-blur transition hover:border-primary/50 hover:bg-card hover:text-foreground"
             aria-label="Ara"
           >
             <Search className="h-5 w-5 shrink-0" />
-            <span className="hidden sm:block">Video, kategori veya etiket ara</span>
+            <span className="hidden sm:block">Türkçe reels, amatör veya kategori ara</span>
           </button>
         </div>
 
@@ -53,9 +56,6 @@ export function Navbar() {
                 <ChevronDown className="hidden md:block h-4 w-4 text-muted-foreground group-hover:rotate-180 transition-transform" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-popover border-border">
-                <DropdownMenuItem onClick={() => { setProfile(null); navigate("/profiller"); }}>
-                  <User className="mr-2 h-4 w-4" /> Profil Değiştir
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/listem")}>Listem</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/admin")}>Yönetim Paneli</DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -66,11 +66,11 @@ export function Navbar() {
             </DropdownMenu>
           ) : (
             <button
-              onClick={() => navigate("/giris")}
-              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              onClick={() => window.dispatchEvent(new Event("open-auth-prompt"))}
+              className="grid h-10 w-10 place-items-center rounded-md border border-primary/25 bg-primary/10 text-zinc-100 shadow-[0_12px_30px_rgba(255,23,77,0.14)] backdrop-blur transition hover:border-primary/60 hover:bg-primary hover:text-white"
+              aria-label="Giriş yap"
             >
-              <LogIn className="h-4 w-4" />
-              Giriş Yap
+              <UserCircle className="h-6 w-6" />
             </button>
           )}
         </div>

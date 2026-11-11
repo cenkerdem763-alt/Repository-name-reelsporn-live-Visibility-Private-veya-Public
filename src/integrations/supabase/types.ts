@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      content_maintenance_runs: {
+        Row: {
+          broken_count: number
+          cached_count: number
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          finished_at: string | null
+          healthy_count: number
+          id: string
+          processed_count: number
+          results: Json
+          source: string
+          started_at: string
+          status: string
+          unpublished_count: number
+          warning_count: number
+        }
+        Insert: {
+          broken_count?: number
+          cached_count?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          healthy_count?: number
+          id?: string
+          processed_count?: number
+          results?: Json
+          source?: string
+          started_at?: string
+          status?: string
+          unpublished_count?: number
+          warning_count?: number
+        }
+        Update: {
+          broken_count?: number
+          cached_count?: number
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          healthy_count?: number
+          id?: string
+          processed_count?: number
+          results?: Json
+          source?: string
+          started_at?: string
+          status?: string
+          unpublished_count?: number
+          warning_count?: number
+        }
+        Relationships: []
+      }
       content_row_items: {
         Row: {
           id: string
@@ -130,11 +184,21 @@ export type Database = {
           created_at: string
           description: string
           duration: string
+          artwork_cached_at: string | null
+          artwork_checked_at: string | null
+          artwork_error: string | null
+          artwork_status: string
           featured: boolean
           genres: string[]
           id: string
           match_score: number
+          playback_checked_at: string | null
+          playback_error: string | null
+          playback_status: string
+          backdrop_source_url: string | null
           poster_url: string
+          poster_source_url: string | null
+          publication_status: string
           rating: string
           title: string
           trailer_url: string | null
@@ -148,11 +212,21 @@ export type Database = {
           created_at?: string
           description?: string
           duration?: string
+          artwork_cached_at?: string | null
+          artwork_checked_at?: string | null
+          artwork_error?: string | null
+          artwork_status?: string
           featured?: boolean
           genres?: string[]
           id: string
           match_score?: number
+          playback_checked_at?: string | null
+          playback_error?: string | null
+          playback_status?: string
+          backdrop_source_url?: string | null
           poster_url?: string
+          poster_source_url?: string | null
+          publication_status?: string
           rating?: string
           title: string
           trailer_url?: string | null
@@ -166,11 +240,21 @@ export type Database = {
           created_at?: string
           description?: string
           duration?: string
+          artwork_cached_at?: string | null
+          artwork_checked_at?: string | null
+          artwork_error?: string | null
+          artwork_status?: string
           featured?: boolean
           genres?: string[]
           id?: string
           match_score?: number
+          playback_checked_at?: string | null
+          playback_error?: string | null
+          playback_status?: string
+          backdrop_source_url?: string | null
           poster_url?: string
+          poster_source_url?: string | null
+          publication_status?: string
           rating?: string
           title?: string
           trailer_url?: string | null

@@ -100,6 +100,8 @@ function mapWpPost(post: WpPost): Title {
     type: rawType === "dizi" ? "dizi" : "film",
     trailerUrl: getStringField(post, ["trailer_url", "trailer"], undefined),
     videoUrl: getStringField(post, ["video_url", "embed_url", "embed", "iframe", "video"], ""),
+    previewUrl: getStringField(post, ["preview_url", "preview", "hover_preview"], undefined),
+    previewStart: Number(getStringField(post, ["preview_start", "previewStart"], "0")) || 0,
     featured: getBooleanField(post, ["featured", "hero", "one_cikan"]),
   };
 }
