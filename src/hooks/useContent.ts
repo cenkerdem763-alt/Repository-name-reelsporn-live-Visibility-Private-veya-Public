@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { buildRowsFromTitles, fallbackRows, fallbackTitles, fetchJsonTitles, mapTitle, normalizePlayableSource, type Title, type Row } from "@/data/content";
+import { buildRowsFromTitles, fallbackRows, fallbackTitles, fetchJsonTitles, mapJsonTitles, mapTitle, normalizePlayableSource, type Title, type Row } from "@/data/content";
 import {
   buildWordPressRows,
   fetchWordPressTitle,
@@ -12,8 +12,15 @@ import {
 const hasSupabaseConfig = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
 const sourceChoice = import.meta.env.VITE_CONTENT_SOURCE || "iptv";
+const useLiveAdmin = sourceChoice === "liveadmin";
+const LIVEADMIN_CATALOG_URL = "https://reels-liveadmin.xyz/api/catalog";
+async function fetchLiveAdminTitles(): Promise<Title[]> {
+  const response = await fetch(LIVEADMIN_CATALOG_URL, { headers: { Accept: "application/json" }, cache: "no-cache" });
+  if (!response.ok) throw new Error(`LiveAdmin catalogue returned HTTP ${response.status}`);
+  return withoutBrokenTitles(mapJsonTitles(await response.json()));
+}
 const useWordPress = sourceChoice === "wordpress" && hasWordPressConfig;
-const useLocalJson = !hasSupabaseConfig && !useWordPress;
+const useLocalJson = !hasSupabaseConfig && !useWordPress && !useLiveAdmin;
 type ContentRowItem = Tables<"content_row_items"> & { titles: Tables<"titles"> | null };
 type TitleQueryOptions = { includeBroken?: boolean };
 
@@ -67,9 +74,9 @@ async function buildSupabaseRowsFromTitles() {
 export function useAllTitles(options: TitleQueryOptions = {}) {
   const includeBroken = options.includeBroken ?? false;
   return useQuery({
-    queryKey: ["titles", useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase"), includeBroken ? "all" : "playable"],
+    queryKey: ["titles", useLiveAdmin ? "liveadmin" : (useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase")), includeBroken ? "all" : "playable"],
     queryFn: async (): Promise<Title[]> => {
-      
+      if (useLiveAdmin) return fetchLiveAdminTitles();
       if (useLocalJson) {
         return withoutBrokenTitles(await fetchJsonTitles(), includeBroken);
       }
@@ -85,10 +92,10 @@ export function useAllTitles(options: TitleQueryOptions = {}) {
 
 export function useTitle(id: string | undefined) {
   return useQuery({
-    queryKey: ["title", useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase"), id],
+    queryKey: ["title", useLiveAdmin ? "liveadmin" : (useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase")), id],
     enabled: !!id,
     queryFn: async (): Promise<Title | null> => {
-      
+      if (useLiveAdmin) return (await fetchLiveAdminTitles()).find((title) => title.id === id) ?? null;
       if (useLocalJson) {
         const titles = await fetchJsonTitles();
         return titles.find((title) => title.id === id) ?? null;
@@ -117,9 +124,9 @@ export function useTitle(id: string | undefined) {
 
 export function useFeaturedTitles() {
   return useQuery({
-    queryKey: ["featured-titles", useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase")],
+    queryKey: ["featured-titles", useLiveAdmin ? "liveadmin" : (useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase"))],
     queryFn: async (): Promise<Title[]> => {
-      
+      if (useLiveAdmin) return (await fetchLiveAdminTitles()).filter(title => title.featured);
       if (useLocalJson) {
         const titles = await fetchJsonTitles();
         return withoutBrokenTitles(titles.filter((title) => title.featured));
@@ -143,9 +150,9 @@ export function useFeaturedTitles() {
 
 export function useContentRows() {
   return useQuery({
-    queryKey: ["content-rows", useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase")],
+    queryKey: ["content-rows", useLiveAdmin ? "liveadmin" : (useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase"))],
     queryFn: async (): Promise<Row[]> => {
-      
+      if (useLiveAdmin) return buildRowsFromTitles(await fetchLiveAdminTitles());
       if (useLocalJson) {
         const titles = await fetchJsonTitles();
         return buildRowsFromTitles(withoutBrokenTitles(titles));
