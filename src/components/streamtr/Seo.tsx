@@ -45,7 +45,7 @@ function setJsonLd(value?: Record<string, unknown>) {
     return;
   }
 
-  const element = current || document.createElement("script");
+  const element = (current as HTMLScriptElement | null) || document.createElement("script");
   element.id = id;
   element.type = "application/ld+json";
   element.textContent = JSON.stringify(value);

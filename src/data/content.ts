@@ -192,6 +192,12 @@ function mapJsonVideo(video: JsonVideo, index: number): Title | null {
   };
 }
 
+export function mapJsonTitles(data: unknown): Title[] {
+  if (!Array.isArray(data)) return [];
+  return data.map((video, index) => mapJsonVideo(video, index))
+    .filter((video): video is Title => Boolean(video));
+}
+
 export async function fetchJsonTitles(): Promise<Title[]> {
   const response = await fetch("/videos.json", { cache: "no-cache" });
   if (!response.ok) return [];
@@ -199,11 +205,7 @@ export async function fetchJsonTitles(): Promise<Title[]> {
   const data = await response.json();
   if (!Array.isArray(data)) return [];
 
-  const titles = data
-    .map((video, index) => mapJsonVideo(video, index))
-    .filter((video): video is Title => Boolean(video));
-
-  return titles;
+  return mapJsonTitles(data);
 }
 
 export function buildRowsFromTitles(titles: Title[]): Row[] {
