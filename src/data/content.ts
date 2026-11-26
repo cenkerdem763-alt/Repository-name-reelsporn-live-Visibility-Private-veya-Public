@@ -1,6 +1,6 @@
 // Type definitions + DB mapping for content
 import type { Tables } from "@/integrations/supabase/types";
-import { normalizeProviderSource } from "@/lib/videoSources";
+import { normalizeDirectVideoSource } from "@/lib/videoSources";
 
 export type Title = {
   id: string;
@@ -38,7 +38,7 @@ function isDirectPreviewVideo(value: string | null | undefined) {
 }
 
 export function normalizePlayableSource(value: string | null | undefined) {
-  return normalizeProviderSource(value);
+  return normalizeDirectVideoSource(value);
 }
 
 type JsonVideo = {
