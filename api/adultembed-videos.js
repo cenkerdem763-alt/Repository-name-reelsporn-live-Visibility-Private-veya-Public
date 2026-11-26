@@ -21,7 +21,7 @@ export function mapAdultEmbedResult(v) {
   const id = String(v.id);
   const embed = safeUrl(v.embed?.url) || `https://adultembed.com/player/embed/${id}/`;
   // Do not accept off-domain player redirects from arbitrary upstream data.
-  if (new URL(embed).hostname !== 'adultembed.com') return null;
+  if (!['adultembed.com', 'pornalizer.app'].includes(new URL(embed).hostname)) return null;
   const poster = safeUrl(v.thumbnail?.url || v.thumbnail || v.thumbnails?.[0]?.url || v.thumb || v.poster);
   const categories = (Array.isArray(v.categories) ? v.categories : [])
     .map((c) => typeof c === 'string' ? c : c?.name)
