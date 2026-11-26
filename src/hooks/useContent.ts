@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { buildRowsFromTitles, fallbackRows, fallbackTitles, fetchJsonTitles, mapJsonTitles, mapTitle, temporaryTestTitles, type Title, type Row } from "@/data/content";
+import { buildRowsFromTitles, fallbackRows, fallbackTitles, fetchJsonTitles, mapJsonTitles, mapTitle, type Title, type Row } from "@/data/content";
 import {
   buildWordPressRows,
   fetchWordPressTitle,
@@ -10,8 +10,9 @@ import {
 } from "@/integrations/wordpress/client";
 
 const hasSupabaseConfig = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
-const useAdultEmbed = import.meta.env.VITE_CONTENT_SOURCE === "adultembed";
-const useLocalJson = import.meta.env.VITE_CONTENT_SOURCE === "json" || (!hasSupabaseConfig && !hasWordPressConfig);
+
+const sourceChoice = import.meta.env.VITE_CONTENT_SOURCE || "iptv";
+const useLocalJson = sourceChoice !== "supabase" && sourceChoice !== "wordpress";
 type ContentRowItem = Tables<"content_row_items"> & { titles: Tables<"titles"> | null };
 type TitleQueryOptions = { includeBroken?: boolean };
 
@@ -25,11 +26,7 @@ function withoutBrokenTitles(titles: Title[], includeBroken = false) {
       );
 }
 
-async function fetchAdultEmbedTitles(): Promise<Title[]> {
-  const response = await fetch("/api/adultembed-videos");
-  if (!response.ok) throw new Error(`AdultEmbed HTTP ${response.status}`);
-  return mapJsonTitles(await response.json());
-}
+
 
 async function fetchBackupTitles(includeBroken = false) {
   if (hasSupabaseConfig) {
@@ -54,10 +51,10 @@ async function fetchBackupTitles(includeBroken = false) {
 async function fetchWordPressTitlesOnly(includeBroken = false) {
   try {
     const titles = withoutBrokenTitles(await fetchWordPressTitles(), includeBroken);
-    return titles.length ? titles : temporaryTestTitles;
+    return titles;
   } catch (error) {
     console.warn("WordPress titles failed:", error);
-    return temporaryTestTitles;
+    return [];
   }
 }
 
@@ -68,12 +65,9 @@ async function buildSupabaseRowsFromTitles() {
 export function useAllTitles(options: TitleQueryOptions = {}) {
   const includeBroken = options.includeBroken ?? false;
   return useQuery({
-    queryKey: ["titles", useAdultEmbed ? "adultembed" : hasWordPressConfig ? "wordpress" : "supabase", includeBroken ? "all" : "playable"],
+    queryKey: ["titles", hasWordPressConfig ? "wordpress" : "supabase", includeBroken ? "all" : "playable"],
     queryFn: async (): Promise<Title[]> => {
-      if (useAdultEmbed) {
-        try { return await fetchAdultEmbedTitles(); }
-        catch (error) { console.warn("AdultEmbed unavailable, using local catalogue:", error); return withoutBrokenTitles(await fetchJsonTitles(), includeBroken); }
-      }
+      
       if (useLocalJson) {
         return withoutBrokenTitles(await fetchJsonTitles(), includeBroken);
       }
@@ -92,17 +86,14 @@ export function useTitle(id: string | undefined) {
     queryKey: ["title", hasWordPressConfig ? "wordpress" : "supabase", id],
     enabled: !!id,
     queryFn: async (): Promise<Title | null> => {
-      if (useAdultEmbed) {
-        try { const titles = await fetchAdultEmbedTitles(); return titles.find((title) => title.id === id) ?? null; }
-        catch { const titles = await fetchJsonTitles(); return titles.find((title) => title.id === id) ?? null; }
-      }
+      
       if (useLocalJson) {
         const titles = await fetchJsonTitles();
         return titles.find((title) => title.id === id) ?? null;
       }
 
       if (hasWordPressConfig) {
-        return (await fetchWordPressTitle(id!)) ?? temporaryTestTitles.find((title) => title.id === id) ?? null;
+        return (await fetchWordPressTitle(id!)) ?? null;
       }
 
       const { data, error } = await supabase.from("titles").select("*").eq("id", id!).maybeSingle();
@@ -125,10 +116,7 @@ export function useFeaturedTitles() {
   return useQuery({
     queryKey: ["featured-titles", hasWordPressConfig ? "wordpress" : "supabase"],
     queryFn: async (): Promise<Title[]> => {
-      if (useAdultEmbed) {
-        try { return (await fetchAdultEmbedTitles()).filter((title) => title.featured); }
-        catch { return (await fetchJsonTitles()).filter((title) => title.featured); }
-      }
+      
       if (useLocalJson) {
         const titles = await fetchJsonTitles();
         return titles.filter((title) => title.featured);
@@ -154,10 +142,7 @@ export function useContentRows() {
   return useQuery({
     queryKey: ["content-rows", hasWordPressConfig ? "wordpress" : "supabase"],
     queryFn: async (): Promise<Row[]> => {
-      if (useAdultEmbed) {
-        try { return buildRowsFromTitles(await fetchAdultEmbedTitles()); }
-        catch { return buildRowsFromTitles(await fetchJsonTitles()); }
-      }
+      
       if (useLocalJson) {
         const titles = await fetchJsonTitles();
         return buildRowsFromTitles(titles);

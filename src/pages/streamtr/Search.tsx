@@ -97,7 +97,7 @@ function SearchResultCard({ item }: { item: Title }) {
                   <Play className="h-5 w-5 fill-current" />
                 </div>
                 <span className="rounded-md border border-white/10 bg-black/40 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-normal text-white/80 backdrop-blur">
-                  Embed
+                  Video
                 </span>
               </div>
             </div>

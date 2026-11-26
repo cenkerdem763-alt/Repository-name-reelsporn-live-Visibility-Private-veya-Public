@@ -5,13 +5,11 @@ import { Button } from "@/components/ui/button";
 import { ShareMenu } from "@/components/streamtr/ShareMenu";
 import { Seo } from "@/components/streamtr/Seo";
 import { VideoHoverPreview } from "@/components/streamtr/VideoHoverPreview";
-import { ProviderEmbedFrame } from "@/components/streamtr/ProviderEmbedFrame";
 import { useApp } from "@/contexts/AppContext";
 import { useTitle, useAllTitles } from "@/hooks/useContent";
-import { normalizePlayableSource, sampleVideoUrl, type Title } from "@/data/content";
+import { normalizePlayableSource, type Title } from "@/data/content";
 import { formatCompactCount, getLikeCount, getLikeRate, getViewCount } from "@/lib/engagement";
-import { getProviderEmbedMeta } from "@/lib/providerEmbed";
-import { getDirectPlaybackSource, getEmbedPlaybackSource } from "@/lib/playbackSource";
+import { getDirectPlaybackSource } from "@/lib/playbackSource";
 
 const relatedTestItems: Title[] = [
   {
@@ -23,7 +21,7 @@ const relatedTestItems: Title[] = [
     duration: "12:00",
     rating: "18+",
     genres: ["TEST"],
-    description: "Embed eklenecek test alanı.",
+    description: "Yayın kaynağı bekleniyor.",
     match: 90,
     type: "film",
   },
@@ -36,7 +34,7 @@ const relatedTestItems: Title[] = [
     duration: "15:30",
     rating: "18+",
     genres: ["TEST"],
-    description: "Embed eklenecek test alanı.",
+    description: "Yayın kaynağı bekleniyor.",
     match: 90,
     type: "film",
   },
@@ -49,7 +47,7 @@ const relatedTestItems: Title[] = [
     duration: "09:45",
     rating: "18+",
     genres: ["TEST"],
-    description: "Embed eklenecek test alanı.",
+    description: "Yayın kaynağı bekleniyor.",
     match: 90,
     type: "film",
   },
@@ -97,7 +95,7 @@ function RelatedCard({ item, test }: { item: Title; test?: boolean }) {
         </div>
         <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
           <Eye className="h-3.5 w-3.5" />
-          {test ? "embed bekliyor" : formatCompactCount(getViewCount(item))}
+          {test ? "kaynak bekliyor" : formatCompactCount(getViewCount(item))}
         </div>
       </div>
     </Link>
@@ -114,11 +112,7 @@ export default function Detail() {
   if (!item) return <div className="pt-32 px-10">İçerik bulunamadı.</div>;
 
   const fav = favorites.includes(item.id);
-  const embedSource = getEmbedPlaybackSource(item);
-  const rawVideoSrc = embedSource || getDirectPlaybackSource(item) || sampleVideoUrl;
-  const videoSrc = normalizePlayableSource(rawVideoSrc) || sampleVideoUrl;
-  const embed = Boolean(embedSource);
-  const embedMeta = embed ? getProviderEmbedMeta(embedSource) : null;
+  const videoSrc = getDirectPlaybackSource(item);
   const cover = item.backdrop || item.poster || "/placeholder.svg";
   const related = titles.filter((title) => title.id !== item.id).slice(0, 10);
   const relatedItems = related.length ? related : relatedTestItems;
@@ -136,8 +130,7 @@ export default function Detail() {
     description: seoDescription,
     thumbnailUrl: [absoluteUrl(cover)],
     uploadDate: `${Number.isFinite(item.year) ? item.year : new Date().getFullYear()}-01-01T00:00:00+03:00`,
-    embedUrl: embed ? absoluteUrl(embedSource) : undefined,
-    contentUrl: !embed ? absoluteUrl(videoSrc) : undefined,
+    contentUrl: videoSrc ? absoluteUrl(videoSrc) : undefined,
   };
 
   return (
@@ -153,18 +146,8 @@ export default function Detail() {
       <div className="mx-auto grid max-w-[1480px] gap-8 xl:grid-cols-[minmax(0,1fr)_25rem]">
         <section className="min-w-0">
           <div className="overflow-hidden rounded-lg border border-white/10 bg-black shadow-[0_18px_48px_rgba(0,0,0,0.26)]">
-            <div className="relative bg-black" style={{ aspectRatio: embedMeta?.aspectRatio || "16 / 9" }}>
-              {embed ? (
-                <ProviderEmbedFrame src={embedSource} title={item.title} />
-              ) : (
-                <video
-                  src={videoSrc}
-                  poster={cover}
-                  controls
-                  playsInline
-                  className="h-full w-full bg-black"
-                />
-              )}
+            <div className="relative aspect-video bg-black">
+              {videoSrc ? <video src={videoSrc} poster={cover} controls playsInline className="h-full w-full bg-black" /> : <div className="grid h-full place-items-center text-sm text-white/60">Yayın kaynağı henüz eklenmedi.</div>}
             </div>
           </div>
 

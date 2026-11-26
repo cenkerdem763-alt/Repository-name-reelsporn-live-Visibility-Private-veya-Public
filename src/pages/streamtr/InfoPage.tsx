@@ -46,7 +46,7 @@ const pages = {
       },
       {
         title: "Üçüncü Taraflar",
-        body: "Embed video sağlayıcıları, reklam bağlantıları ve analiz araçları kendi gizlilik politikalarına göre veri işleyebilir.",
+        body: "Yayın hizmeti sağlayıcıları ve analiz araçları kendi gizlilik politikalarına göre veri işleyebilir.",
       },
     ],
   },

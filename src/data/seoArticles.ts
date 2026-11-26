@@ -112,7 +112,7 @@ export const seoArticles: SeoArticle[] = [
         title: "Teknik hız ve kullanım",
         body: [
           "Mobil SEO için hız da deneyimin parçasıdır. Geç açılan poster, takılan player veya gereksiz reklam pencereleri kullanıcının sayfadan çıkmasına neden olur. Bu davranışlar zamanla arama performansını da etkileyebilir.",
-          "Bu yüzden sade arayüz, doğru embed seçimi, temiz poster görselleri ve mobilde rahat çalışan kaydırma davranışı birlikte düşünülmelidir. Kullanıcı sinirlenmeden ikinci videoya geçebiliyorsa akış doğru yoldadır.",
+          "Bu yüzden sade arayüz, doğru oynatma kaynağı seçimi, temiz poster görselleri ve mobilde rahat çalışan kaydırma davranışı birlikte düşünülmelidir. Kullanıcı sinirlenmeden ikinci videoya geçebiliyorsa akış doğru yoldadır.",
         ],
       },
     ],
@@ -130,7 +130,7 @@ export const seoArticles: SeoArticle[] = [
       {
         title: "Kaynak kalitesi",
         body: [
-          "18+ video kataloğu kurarken ilk hedef yalnızca çok içerik almak olmamalıdır. Kaynağın embed davranışı, reklam yoğunluğu, thumbnail kalitesi ve içerik güvenliği mutlaka kontrol edilmelidir.",
+          "18+ video kataloğu kurarken ilk hedef yalnızca çok içerik almak olmamalıdır. Kaynağın yayın izni, reklam yoğunluğu, thumbnail kalitesi ve içerik güvenliği mutlaka kontrol edilmelidir.",
           "Temiz kaynaklardan gelen içerikler kullanıcı güvenini artırır. Sürekli popup açan, yanıltıcı başlık kullanan veya çalışmayan player veren kaynaklar kısa sürede katalog kalitesini düşürür.",
         ],
       },

@@ -4,14 +4,12 @@ import {
   ArrowLeft, BadgeCheck, Clock3, Eye, Heart, Maximize, Minimize, Pause, Play, Settings, SkipBack, SkipForward,
   Subtitles, ThumbsUp, Volume2, VolumeX,
 } from "lucide-react";
-import { ProviderEmbedFrame } from "@/components/streamtr/ProviderEmbedFrame";
 import { ShareMenu } from "@/components/streamtr/ShareMenu";
 import { useApp } from "@/contexts/AppContext";
 import { useAllTitles, useTitle } from "@/hooks/useContent";
-import { normalizePlayableSource, sampleVideoUrl, type Title } from "@/data/content";
+import { normalizePlayableSource, type Title } from "@/data/content";
 import { formatCompactCount, getLikeCount, getViewCount } from "@/lib/engagement";
-import { getProviderEmbedMeta } from "@/lib/providerEmbed";
-import { getDirectPlaybackSource, getEmbedPlaybackSource } from "@/lib/playbackSource";
+import { getDirectPlaybackSource } from "@/lib/playbackSource";
 
 const subtitleTracks = [
   { lang: "off", label: "Kapalı" },
@@ -222,96 +220,11 @@ export default function Player() {
   if (isLoading) return <div className="grid h-screen place-items-center bg-black p-10 text-foreground">Yükleniyor...</div>;
   if (!item) return <div className="grid min-h-screen place-items-center bg-background p-10">İçerik bulunamadı.</div>;
   const currentSub = sub !== "off" && sub === "tr" ? trSample.find((c) => time >= c.from && time <= c.to) : null;
-  const embedSource = getEmbedPlaybackSource(item);
-  const directVideoSrc = getDirectPlaybackSource(item);
-  const rawVideoSrc = embedSource || directVideoSrc || sampleVideoUrl;
-  const videoSrc = getNormalizedSource(rawVideoSrc) || sampleVideoUrl;
-  const embed = Boolean(embedSource);
-  const embedMeta = embed ? getProviderEmbedMeta(embedSource) : null;
+  const videoSrc = getDirectPlaybackSource(item);
   const cover = item.backdrop || item.poster || "/placeholder.svg";
   const viewCount = getViewCount(item);
   const likeCount = getLikeCount(item, liked);
   const shareUrl = typeof window === "undefined" ? `/icerik/${item.id}` : `${window.location.origin}/icerik/${item.id}`;
-  const embedFrameStyle = embedMeta?.isPortrait
-    ? {
-        height: "min(76vh, calc(100svh - 9rem))",
-        maxHeight: "calc(100svh - 8rem)",
-      }
-    : {
-        aspectRatio: embedMeta?.aspectRatio || "16 / 9",
-        maxHeight: "calc(100svh - 10rem)",
-      };
-
-  if (embed) {
-    return (
-      <main ref={wrapRef} className="min-h-screen bg-[linear-gradient(180deg,#030305,#111116_52%,#09090c)] text-white">
-        <div className="sticky top-0 z-30 border-b border-white/10 bg-black/78 px-3 pt-[env(safe-area-inset-top)] backdrop-blur-xl md:px-6">
-          <div className="mx-auto flex min-h-16 max-w-[1560px] items-center justify-between gap-3">
-            <button onClick={() => nav(-1)} className="flex min-w-0 items-center gap-3 rounded-md px-2 py-2 text-left transition hover:bg-white/[0.06]">
-              <ArrowLeft className="h-5 w-5 shrink-0" />
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-bold md:text-base">{item.title}</span>
-                <span className="hidden text-xs text-white/54 sm:block">{item.duration || "Video"} / {item.rating || "18+"}</span>
-              </span>
-            </button>
-            <div className="flex items-center gap-2">
-              <PlayerIconButton label={liked ? "Beğeniyi kaldır" : "Beğen"} onClick={() => toggleLike(item.id)} active={liked}>
-                <ThumbsUp className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
-              </PlayerIconButton>
-              <PlayerIconButton label={fav ? "Favoriden çıkar" : "Favori"} onClick={() => toggleFavorite(item.id)} active={fav}>
-                <Heart className={`h-5 w-5 ${fav ? "fill-current" : ""}`} />
-              </PlayerIconButton>
-              <ShareMenu title={item.title} url={shareUrl} variant="icon" className="h-11 w-11" />
-            </div>
-          </div>
-        </div>
-
-        <div className="mx-auto grid max-w-[1560px] gap-6 px-0 pb-10 md:px-6 md:pt-6 xl:grid-cols-[minmax(0,1fr)_25rem]">
-          <section className="min-w-0">
-            <div className="flex w-full items-start justify-center bg-black md:rounded-md md:border md:border-white/10 md:bg-white/[0.035] md:p-3 md:shadow-[0_22px_70px_rgba(0,0,0,0.34)]">
-              <div
-                className={`w-full overflow-hidden bg-black md:rounded-md ${embedMeta?.isPortrait ? "max-w-[480px]" : "max-w-6xl"}`}
-                style={embedFrameStyle}
-              >
-                <ProviderEmbedFrame src={embedSource} title={item.title} />
-              </div>
-            </div>
-
-            <div className="px-4 pt-5 md:px-0">
-              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-white/70">
-                <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-1">
-                  <Eye className="h-3.5 w-3.5" />
-                  {formatCompactCount(viewCount)} görüntülenme
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-1">
-                  <ThumbsUp className={`h-3.5 w-3.5 ${liked ? "fill-primary text-primary" : ""}`} />
-                  {formatCompactCount(likeCount)} beğeni
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-1">
-                  <Clock3 className="h-3.5 w-3.5" />
-                  {item.duration || "Video"}
-                </span>
-                <span className="rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-1">{item.rating || "18+"}</span>
-              </div>
-              <h1 className="max-w-4xl text-2xl font-extrabold leading-tight text-white md:text-3xl">{item.title}</h1>
-              <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-white/78">
-                <span>{item.genres[0] || "ReelsPorn"}</span>
-                <BadgeCheck className="h-4 w-4 text-primary" />
-              </div>
-              <p className="mt-3 max-w-4xl text-sm leading-6 text-white/64 md:text-base">
-                {item.description || item.genres.join(", ")}
-              </p>
-              <div className="mt-4">
-                <GenrePills genres={item.genres} />
-              </div>
-            </div>
-          </section>
-
-          <RelatedRail items={related} />
-        </div>
-      </main>
-    );
-  }
 
   return (
     <div
@@ -324,7 +237,7 @@ export default function Player() {
         ref={videoRef}
         autoPlay
         playsInline
-        src={videoSrc}
+        src={videoSrc || undefined}
         poster={cover}
         className="h-full w-full object-contain"
         onClick={togglePlay}

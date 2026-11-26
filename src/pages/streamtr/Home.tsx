@@ -76,7 +76,7 @@ function VideoTile({ item, onArtworkError }: { item: Title; onArtworkError: (id:
                   <Play className="h-5 w-5 fill-current" />
                 </div>
                 <span className="rounded-md border border-white/10 bg-black/40 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-normal text-white/80 backdrop-blur">
-                  Embed
+                  Video
                 </span>
               </div>
             </div>
@@ -293,7 +293,7 @@ export default function Home() {
               </div>
               <h2 className="mt-6 text-3xl font-black tracking-tight text-white">Katalog yenileniyor</h2>
               <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-white/64">
-                Eski kaynaklar kaldırıldı. Yeni embed kaynakları mobil ve masaüstünde doğrulandıktan sonra katalog tekrar yayına alınacak.
+                Eski kaynaklar kaldırıldı. Yeni yayın kaynakları doğrulandıktan sonra katalog tekrar yayına alınacak.
               </p>
               <div className="mt-7 flex flex-wrap justify-center gap-2 text-xs font-bold text-white/68">
                 <span className="rounded-md border border-primary/20 bg-primary/10 px-3 py-2 text-primary">Kaynak testi</span>

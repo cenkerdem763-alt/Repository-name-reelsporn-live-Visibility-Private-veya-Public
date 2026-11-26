@@ -53,7 +53,6 @@ type JsonVideo = {
   rating?: string;
   year?: number;
   description?: string;
-  embedUrl?: string;
   videoUrl?: string;
   trailerUrl?: string;
   previewUrl?: string;
@@ -62,65 +61,11 @@ type JsonVideo = {
   type?: "film" | "dizi";
 };
 
-export const sampleVideoUrl = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
-
 export const fallbackTitles: Title[] = [];
-
 export const fallbackRows: Row[] = [];
 
-export const temporaryTestTitles: Title[] = [
-  {
-    id: "test-turkce-reels-01",
-    title: "Türkçe Reels Önizleme",
-    poster: "/content/poster-1.jpg",
-    backdrop: "/content/hero-1.jpg",
-    year: 2026,
-    duration: "0:12",
-    rating: "18+",
-    genres: ["Türkçe Reels", "Trend", "HD"],
-    description: "Mobil akış testi için geçici kısa video.",
-    match: 98,
-    type: "film",
-    videoUrl: sampleVideoUrl,
-    previewUrl: sampleVideoUrl,
-    featured: true,
-  },
-  {
-    id: "test-amator-reels-02",
-    title: "Amatör Kısa Reels",
-    poster: "/content/poster-2.jpg",
-    backdrop: "/content/hero-2.jpg",
-    year: 2026,
-    duration: "0:15",
-    rating: "18+",
-    genres: ["Amatör", "Yeni", "Reels"],
-    description: "Kaydırma ve mobil oynatma testi için geçici içerik.",
-    match: 95,
-    type: "film",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    previewUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    featured: true,
-  },
-  {
-    id: "test-trend-reels-03",
-    title: "Trend Reels Testi",
-    poster: "/content/poster-3.jpg",
-    backdrop: "/content/hero-3.jpg",
-    year: 2026,
-    duration: "0:10",
-    rating: "18+",
-    genres: ["Trend Reels", "Popüler", "Kısa Video"],
-    description: "Akış, beğeni ve kategori geçişini test etmek için geçici video.",
-    match: 93,
-    type: "film",
-    videoUrl: sampleVideoUrl,
-    previewUrl: sampleVideoUrl,
-    featured: true,
-  },
-];
-
 function cleanDescription(value: string) {
-  return /kayna[ğg](ı|i)ndan embed i[çc]erik\.?$/i.test(value.trim()) ? "" : value;
+  return value;
 }
 
 export function mapTitle(r: Tables<"titles">): Title {
@@ -166,7 +111,7 @@ function slugify(value: string) {
 
 function mapJsonVideo(video: JsonVideo, index: number): Title | null {
   const title = video.title?.trim();
-  const source = normalizePlayableSource(video.embedUrl || video.videoUrl || video.trailerUrl);
+  const source = normalizePlayableSource(video.videoUrl || video.trailerUrl);
   if (!title || !source) return null;
 
   const genres = video.categories?.length ? video.categories : [video.category || "Video"];
