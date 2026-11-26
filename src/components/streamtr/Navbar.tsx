@@ -57,7 +57,6 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-popover border-border">
                 <DropdownMenuItem onClick={() => navigate("/listem")}>Listem</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin")}>Yönetim Paneli</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => { logout(); navigate("/"); }}>
                   <LogOut className="mr-2 h-4 w-4" /> Çıkış Yap
