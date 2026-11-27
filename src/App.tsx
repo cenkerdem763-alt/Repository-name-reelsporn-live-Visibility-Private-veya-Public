@@ -12,7 +12,6 @@ import Player from "./pages/streamtr/Player";
 import Search from "./pages/streamtr/Search";
 import Listem from "./pages/streamtr/Listem";
 import Browse from "./pages/streamtr/Browse";
-import Admin from "./pages/streamtr/Admin";
 import InfoPage from "./pages/streamtr/InfoPage";
 import SeoArticlePage from "./pages/streamtr/SeoArticlePage";
 import NotFound from "./pages/NotFound.tsx";
@@ -47,7 +46,6 @@ const App = () => (
               <Route path="/reklam-iletisim" element={<InfoPage />} />
               <Route path="/hakkimizda" element={<InfoPage />} />
               <Route path="/gizlilik" element={<InfoPage />} />
-              <Route path="/admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

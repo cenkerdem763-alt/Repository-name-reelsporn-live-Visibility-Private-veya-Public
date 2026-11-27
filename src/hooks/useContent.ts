@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { buildRowsFromTitles, fallbackRows, fallbackTitles, fetchJsonTitles, mapJsonTitles, mapTitle, type Title, type Row } from "@/data/content";
+import { buildRowsFromTitles, fallbackRows, fallbackTitles, fetchJsonTitles, mapJsonTitles, mapTitle, normalizePlayableSource, type Title, type Row } from "@/data/content";
 import {
   buildWordPressRows,
   fetchWordPressTitle,
@@ -12,7 +12,15 @@ import {
 const hasSupabaseConfig = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
 const sourceChoice = import.meta.env.VITE_CONTENT_SOURCE || "iptv";
-const useLocalJson = sourceChoice !== "supabase" && sourceChoice !== "wordpress";
+const useLiveAdmin = sourceChoice === "liveadmin";
+const LIVEADMIN_CATALOG_URL = "https://reels-liveadmin.xyz/api/catalog";
+async function fetchLiveAdminTitles(): Promise<Title[]> {
+  const response = await fetch(LIVEADMIN_CATALOG_URL, { headers: { Accept: "application/json" }, cache: "no-cache" });
+  if (!response.ok) throw new Error(`LiveAdmin catalogue returned HTTP ${response.status}`);
+  return withoutBrokenTitles(mapJsonTitles(await response.json()));
+}
+const useWordPress = sourceChoice === "wordpress" && hasWordPressConfig;
+const useLocalJson = !hasSupabaseConfig && !useWordPress && !useLiveAdmin;
 type ContentRowItem = Tables<"content_row_items"> & { titles: Tables<"titles"> | null };
 type TitleQueryOptions = { includeBroken?: boolean };
 
@@ -20,6 +28,7 @@ function withoutBrokenTitles(titles: Title[], includeBroken = false) {
   return includeBroken
     ? titles
     : titles.filter((title) =>
+        Boolean(title.videoUrl && normalizePlayableSource(title.videoUrl)) &&
         (title.publicationStatus ?? "published") === "published" &&
         title.playbackStatus !== "broken" &&
         title.artworkStatus !== "broken"
@@ -65,14 +74,14 @@ async function buildSupabaseRowsFromTitles() {
 export function useAllTitles(options: TitleQueryOptions = {}) {
   const includeBroken = options.includeBroken ?? false;
   return useQuery({
-    queryKey: ["titles", hasWordPressConfig ? "wordpress" : "supabase", includeBroken ? "all" : "playable"],
+    queryKey: ["titles", useLiveAdmin ? "liveadmin" : (useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase")), includeBroken ? "all" : "playable"],
     queryFn: async (): Promise<Title[]> => {
-      
+      if (useLiveAdmin) return fetchLiveAdminTitles();
       if (useLocalJson) {
         return withoutBrokenTitles(await fetchJsonTitles(), includeBroken);
       }
 
-      if (hasWordPressConfig) {
+      if (useWordPress) {
         return fetchWordPressTitlesOnly(includeBroken);
       }
 
@@ -83,16 +92,16 @@ export function useAllTitles(options: TitleQueryOptions = {}) {
 
 export function useTitle(id: string | undefined) {
   return useQuery({
-    queryKey: ["title", hasWordPressConfig ? "wordpress" : "supabase", id],
+    queryKey: ["title", useLiveAdmin ? "liveadmin" : (useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase")), id],
     enabled: !!id,
     queryFn: async (): Promise<Title | null> => {
-      
+      if (useLiveAdmin) return (await fetchLiveAdminTitles()).find((title) => title.id === id) ?? null;
       if (useLocalJson) {
         const titles = await fetchJsonTitles();
         return titles.find((title) => title.id === id) ?? null;
       }
 
-      if (hasWordPressConfig) {
+      if (useWordPress) {
         return (await fetchWordPressTitle(id!)) ?? null;
       }
 
@@ -103,6 +112,7 @@ export function useTitle(id: string | undefined) {
       }
       const title = data ? mapTitle(data) : (hasSupabaseConfig ? null : fallbackTitles.find((title) => title.id === id) ?? null);
       return title &&
+        Boolean(title.videoUrl && normalizePlayableSource(title.videoUrl)) &&
         (title.publicationStatus ?? "published") === "published" &&
         title.playbackStatus !== "broken" &&
         title.artworkStatus !== "broken"
@@ -114,15 +124,15 @@ export function useTitle(id: string | undefined) {
 
 export function useFeaturedTitles() {
   return useQuery({
-    queryKey: ["featured-titles", hasWordPressConfig ? "wordpress" : "supabase"],
+    queryKey: ["featured-titles", useLiveAdmin ? "liveadmin" : (useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase"))],
     queryFn: async (): Promise<Title[]> => {
-      
+      if (useLiveAdmin) return (await fetchLiveAdminTitles()).filter(title => title.featured);
       if (useLocalJson) {
         const titles = await fetchJsonTitles();
-        return titles.filter((title) => title.featured);
+        return withoutBrokenTitles(titles.filter((title) => title.featured));
       }
 
-      if (hasWordPressConfig) {
+      if (useWordPress) {
         const titles = await fetchWordPressTitlesOnly();
         return titles.filter((title) => title.featured);
       }
@@ -140,15 +150,15 @@ export function useFeaturedTitles() {
 
 export function useContentRows() {
   return useQuery({
-    queryKey: ["content-rows", hasWordPressConfig ? "wordpress" : "supabase"],
+    queryKey: ["content-rows", useLiveAdmin ? "liveadmin" : (useWordPress ? "wordpress" : (useLocalJson ? "json" : "supabase"))],
     queryFn: async (): Promise<Row[]> => {
-      
+      if (useLiveAdmin) return buildRowsFromTitles(await fetchLiveAdminTitles());
       if (useLocalJson) {
         const titles = await fetchJsonTitles();
-        return buildRowsFromTitles(titles);
+        return buildRowsFromTitles(withoutBrokenTitles(titles));
       }
 
-      if (hasWordPressConfig) {
+      if (useWordPress) {
         const titles = await fetchWordPressTitlesOnly();
         return buildWordPressRows(titles);
       }
@@ -180,6 +190,7 @@ export function useContentRows() {
           .filter((it): it is ContentRowItem & { titles: Tables<"titles"> } => it.row_id === r.id && Boolean(it.titles))
           .map((it) => mapTitle(it.titles))
           .filter((title) =>
+            Boolean(title.videoUrl && normalizePlayableSource(title.videoUrl)) &&
             (title.publicationStatus ?? "published") === "published" &&
             title.playbackStatus !== "broken" &&
             title.artworkStatus !== "broken"

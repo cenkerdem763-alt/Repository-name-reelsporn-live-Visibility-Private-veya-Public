@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, BadgeCheck, Clock3, Eye, Heart, Maximize, Minimize, Pause, Play, Settings, SkipBack, SkipForward,
-  Subtitles, ThumbsUp, Volume2, VolumeX,
+  ThumbsUp, Volume2, VolumeX,
 } from "lucide-react";
 import { ShareMenu } from "@/components/streamtr/ShareMenu";
 import { useApp } from "@/contexts/AppContext";
@@ -10,20 +10,9 @@ import { useAllTitles, useTitle } from "@/hooks/useContent";
 import { normalizePlayableSource, type Title } from "@/data/content";
 import { formatCompactCount, getLikeCount, getViewCount } from "@/lib/engagement";
 import { getDirectPlaybackSource } from "@/lib/playbackSource";
-
-const subtitleTracks = [
-  { lang: "off", label: "Kapalı" },
-  { lang: "tr", label: "Türkçe" },
-  { lang: "en", label: "İngilizce" },
-];
+import { attachPlayback } from "@/lib/playerEngine";
 
 const playbackRates = [0.75, 1, 1.25, 1.5, 2];
-
-const trSample = [
-  { from: 2, to: 6, text: "Hoş geldiniz, hikayemiz başlıyor..." },
-  { from: 7, to: 12, text: "Bu, unutamayacağınız bir yolculuk olacak." },
-  { from: 14, to: 20, text: "İstanbul'un sokakları sırlarla dolu." },
-];
 
 function fmt(s: number) {
   if (!isFinite(s)) return "0:00";
@@ -133,7 +122,8 @@ export default function Player() {
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
   const [fs, setFs] = useState(false);
-  const [sub, setSub] = useState("tr");
+  const [sourceFailed, setSourceFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [rate, setRate] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
   const hideTimer = useRef<number | null>(null);
@@ -178,6 +168,13 @@ export default function Player() {
   }, [id, updateProgress]);
 
   useEffect(() => {
+    const video=videoRef.current;
+    if(!video||!item)return;
+    setSourceFailed(false);
+    return attachPlayback(video,getDirectPlaybackSource(item),()=>setSourceFailed(true));
+  },[item?.id,item?.videoUrl,item?.trailerUrl,retry]);
+
+  useEffect(() => {
     const onFs = () => setFs(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", onFs);
     return () => document.removeEventListener("fullscreenchange", onFs);
@@ -219,8 +216,6 @@ export default function Player() {
   };
   if (isLoading) return <div className="grid h-screen place-items-center bg-black p-10 text-foreground">Yükleniyor...</div>;
   if (!item) return <div className="grid min-h-screen place-items-center bg-background p-10">İçerik bulunamadı.</div>;
-  const currentSub = sub !== "off" && sub === "tr" ? trSample.find((c) => time >= c.from && time <= c.to) : null;
-  const videoSrc = getDirectPlaybackSource(item);
   const cover = item.backdrop || item.poster || "/placeholder.svg";
   const viewCount = getViewCount(item);
   const likeCount = getLikeCount(item, liked);
@@ -237,17 +232,18 @@ export default function Player() {
         ref={videoRef}
         autoPlay
         playsInline
-        src={videoSrc || undefined}
+        preload="metadata"
+        onError={() => setSourceFailed(true)}
         poster={cover}
         className="h-full w-full object-contain"
         onClick={togglePlay}
       />
 
-      {currentSub && (
-        <div className="pointer-events-none absolute bottom-28 left-1/2 max-w-[82%] -translate-x-1/2 rounded-md bg-black/72 px-4 py-2 text-center text-base font-semibold text-white shadow-[0_14px_42px_rgba(0,0,0,0.3)] backdrop-blur md:text-2xl">
-          {currentSub.text}
-        </div>
-      )}
+      {sourceFailed && <div className="absolute inset-0 z-40 grid place-items-center bg-black/85 px-6 text-center">
+        <div><h2 className="text-xl font-bold">Video oynatılamıyor</h2>
+        <p className="mt-2 text-sm text-white/60">Bağlantı, erişim izni veya video biçimini kontrol edin.</p>
+        <button type="button" onClick={()=>setRetry(n=>n+1)} className="mt-5 rounded-xl bg-primary px-5 py-3 text-sm font-semibold">Yeniden dene</button></div>
+      </div>}
 
       <div className={`pointer-events-none absolute inset-0 transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}>
         <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/88 via-black/42 to-transparent" />
@@ -338,9 +334,6 @@ export default function Player() {
               <PlayerIconButton label="Ayarlar" onClick={() => setShowSettings((v) => !v)}>
                 <Settings className="h-5 w-5" />
               </PlayerIconButton>
-              <PlayerIconButton label="Altyazı" onClick={() => setSub(sub === "off" ? "tr" : "off")} active={sub !== "off"} className="hidden sm:grid">
-                <Subtitles className="h-5 w-5" />
-              </PlayerIconButton>
               <PlayerIconButton label="Tam ekran" onClick={toggleFs}>
                 {fs ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
               </PlayerIconButton>
@@ -361,16 +354,6 @@ export default function Player() {
                       </button>
                     ))}
                   </div>
-                  <div className="px-2 py-1 text-xs font-bold text-white/46">Altyazı</div>
-                  {subtitleTracks.map((s) => (
-                    <button
-                      key={s.lang}
-                      onClick={() => { setSub(s.lang); setShowSettings(false); }}
-                      className={`w-full rounded-sm px-3 py-2 text-left text-sm transition hover:bg-white/[0.08] ${sub === s.lang ? "text-primary" : "text-white/76"}`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
                 </div>
               )}
             </div>
